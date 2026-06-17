@@ -3,7 +3,7 @@
 
   const STARTING_CHIPS    = 1000;
   const INITIAL_BIG_BLIND = 10;
-  const MAX_SEATS         = 5;  // ← 5 мест
+  const MAX_SEATS         = 5;   // ← ИСПРАВЛЕНО: 5 мест
   const PHASE = { PRE_FLOP: 0, FLOP: 1, TURN: 2, RIVER: 3, SHOWDOWN: 4 };
   const PHASE_NAMES = ['Пре-флоп', 'Флоп', 'Тёрн', 'Ривер', 'Вскрытие'];
 
@@ -22,11 +22,6 @@
   let syncTimer        = null;
   let fbUnsubscribe    = null;
   let lobbyUnsubscribe = null;
-  let actionInProgress = false;
-
-  let actionTimerInterval = null;
-  let actionTimeLeft = 20;
-  const ACTION_TIMEOUT = 20;
 
   let settings = {
     musicVolume: 0.5,
@@ -513,7 +508,6 @@
       if (desiredSeat !== null) renderGameTable();
       return;
     }
-    // Вычитаем бай-ин из баланса
     playerData.chips -= buyIn;
     currentTableId = tableId;
     mySeatIdx = seat;
@@ -565,62 +559,6 @@
     await TableStore.saveTable(currentTableId, state);
   }
 
-  // ─── Таймер хода ──────────────────────────────────────────────
-  function startActionTimer() {
-    stopActionTimer();
-    if (!state || !state.gameStarted) return;
-    const seat = state.seats[state.currentSeat];
-    if (!seat || seat.playerId !== myPlayerId) return;
-    if (seat.folded || seat.isAllIn) return;
-
-    actionTimeLeft = ACTION_TIMEOUT;
-    updateActionTimerDisplay();
-
-    actionTimerInterval = setInterval(() => {
-      actionTimeLeft--;
-      updateActionTimerDisplay();
-      if (actionTimeLeft <= 0) {
-        stopActionTimer();
-        UI.notify('⏳ Время вышло! Авто-фолд', 2000);
-        humanAction('fold');
-      }
-    }, 1000);
-  }
-
-  function stopActionTimer() {
-    if (actionTimerInterval) {
-      clearInterval(actionTimerInterval);
-      actionTimerInterval = null;
-    }
-    actionTimeLeft = ACTION_TIMEOUT;
-    updateActionTimerDisplay();
-    const label = document.getElementById('actionTimerLabel');
-    if (label) {
-      const isOurTurn = state && state.gameStarted && state.currentSeat === mySeatIdx;
-      label.textContent = isOurTurn ? '⏱ Ходите!' : '⏱ Ход';
-    }
-  }
-
-  function updateActionTimerDisplay() {
-    const display = document.getElementById('actionTimerDisplay');
-    if (display) {
-      display.textContent = Math.max(0, actionTimeLeft);
-      if (actionTimeLeft <= 5) {
-        display.style.color = '#e74c3c';
-        display.style.animation = 'pulse 0.5s ease-in-out infinite';
-      } else {
-        display.style.color = '';
-        display.style.animation = '';
-      }
-    }
-    const label = document.getElementById('actionTimerLabel');
-    if (label && state && state.gameStarted && state.currentSeat === mySeatIdx) {
-      label.textContent = '⏱ Ходите!';
-    } else if (label) {
-      label.textContent = '⏱ Ход';
-    }
-  }
-
   // ─── Игровой стол ─────────────────────────────────────────────
   function renderGameTable() {
     if (!state) return;
@@ -630,11 +568,6 @@
     renderControls();
     renderInfo();
     syncNextHandCountdown();
-    if (state.gameStarted && state.currentSeat === mySeatIdx) {
-      startActionTimer();
-    } else {
-      stopActionTimer();
-    }
   }
 
   function syncNextHandCountdown() {
@@ -685,9 +618,9 @@
 
       if (!seat.playerId) {
         el.className = 'player-seat empty-seat';
-        // УБИРАЕМ onclick – теперь клик обрабатывается через делегирование в index.html
+        // ВОЗВРАЩАЕМ onclick прямо в HTML – это надёжно работает
         el.innerHTML = `
-          <div class="empty-seat-inner">
+          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(${i})">
             <div class="empty-seat-icon">+</div>
             <div class="empty-seat-label">Свободно</div>
           </div>`;
@@ -775,7 +708,6 @@
   }
 
   async function leaveTable() {
-    stopActionTimer();
     if (!currentTableId || mySeatIdx === -1) {
       stopSync();
       stopNextHandCountdown();
@@ -786,7 +718,6 @@
     }
     const t = await TableStore.getTable(currentTableId);
     if (t && t.seats[mySeatIdx]) {
-      // Забираем остаток фишек со стола
       const remaining = t.seats[mySeatIdx].chips || 0;
       playerData.chips += remaining;
     }
@@ -856,11 +787,6 @@
     await saveTableState();
     renderGameTable();
     AudioManager.deal();
-
-    if (state.currentSeat === mySeatIdx) {
-      UI.notify('Ваш ход!', 1500);
-      startActionTimer();
-    }
   }
 
   function moveDealer() {
@@ -923,19 +849,15 @@
 
   // ─── Действия игрока (с защитой) ──────────────────────────
   function humanAction(action, amount) {
-    if (actionInProgress) return;
     if (!state || !state.gameStarted) return;
     if (state.currentSeat !== mySeatIdx) return;
     const seat = state.seats[mySeatIdx];
     if (!seat || seat.folded || seat.isAllIn) return;
     AudioManager.resume();
-    actionInProgress = true;
-    setTimeout(() => { actionInProgress = false; }, 300);
     processSeatAction(mySeatIdx, action, amount);
   }
 
   async function processSeatAction(seatIdx, action, amount) {
-    stopActionTimer();
     const s = state.seats[seatIdx];
     if (!s || s.folded || s.isAllIn) { advanceAction(); return; }
 
@@ -983,7 +905,6 @@
   }
 
   async function advanceAction() {
-    stopActionTimer();
     const activePlayers = state.seats.filter(s => s.playerId && !s.folded && !s.isAllIn);
     const notFolded     = state.seats.filter(s => s.playerId && !s.folded);
 
@@ -1005,10 +926,6 @@
     }
 
     state.currentSeat = next;
-    if (state.currentSeat === mySeatIdx) {
-      UI.notify('Ваш ход!', 1500);
-      startActionTimer();
-    }
     await saveTableState();
     renderGameTable();
   }
@@ -1032,7 +949,6 @@
   }
 
   async function nextPhase() {
-    stopActionTimer();
     state.seats.forEach(s => s.currentBet = 0);
     state.callAmount  = 0;
     state.lastRaiser  = -1;
@@ -1055,10 +971,6 @@
     state.currentSeat = first;
     if (first === -1) { nextPhase(); return; }
 
-    if (state.currentSeat === mySeatIdx) {
-      UI.notify('Ваш ход!', 1500);
-      startActionTimer();
-    }
     await saveTableState();
     renderGameTable();
   }
@@ -1075,7 +987,6 @@
   }
 
   async function showdown() {
-    stopActionTimer();
     state.phase = PHASE.SHOWDOWN;
     const contenders = state.seats
       .map((s, i) => ({...s, seatIdx: i}))
@@ -1133,7 +1044,7 @@
     });
 
     playerData.stats.handsPlayed++;
-    // ★★★ НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта при выходе ★★★
+    // НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта
 
     const HAND_END_DELAY = 15000;
     state.handEndsAt = Date.now() + HAND_END_DELAY;
@@ -1147,7 +1058,6 @@
   }
 
   async function endHand(winners) {
-    stopActionTimer();
     stopNextHandCountdown();
     state.gameStarted = false;
     state.currentSeat = -1;

@@ -625,9 +625,9 @@
 
       if (!seat.playerId) {
         el.className = 'player-seat empty-seat';
-        // КЛИК через onclick – надёжно работает
+        el.dataset.idx = i;
         el.innerHTML = `
-          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(${i})">
+          <div class="empty-seat-inner">
             <div class="empty-seat-icon">+</div>
             <div class="empty-seat-label">Свободно</div>
           </div>`;

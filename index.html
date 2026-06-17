@@ -347,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!seatEl) return;
     const idx = parseInt(seatEl.dataset.idx);
     if (!isNaN(idx) && window.PokerGame && typeof window.PokerGame.takeSeat === 'function') {
+      e.stopPropagation();
       window.PokerGame.takeSeat(idx);
     }
   });

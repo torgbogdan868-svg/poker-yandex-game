@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ТЕХАССКИЙ ХОЛДЕМ — МАКСИМАЛЬНО КРУПНО ДЛЯ ТЕЛЕФОНА
+   ТЕХАССКИЙ ХОЛДЕМ — АДАПТИВНЫЙ ДЛЯ ВСЕХ ЭКРАНОВ
 ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap');
@@ -802,8 +802,8 @@ body {
 ═══════════════════════════════════════════════════════════════ */
 
 .card {
-  width: 38px;
-  height: 52px;
+  width: 42px;
+  height: 58px;
   border-radius: 4px;
   background: #fff;
   border: 1px solid rgba(0,0,0,0.15);
@@ -882,8 +882,8 @@ body {
 
 /* Плейсхолдер карты */
 .card-placeholder {
-  width: 38px;
-  height: 52px;
+  width: 42px;
+  height: 58px;
   border-radius: 4px;
   background: rgba(255,255,255,0.04);
   border: 1px dashed rgba(255,255,255,0.12);
@@ -1536,43 +1536,36 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   МОБИЛЬНАЯ АДАПТАЦИЯ — МАКСИМАЛЬНО КРУПНО
+   АДАПТАЦИЯ ДЛЯ РАЗНЫХ ЭКРАНОВ
 ═══════════════════════════════════════════════════════════════ */
 
-@media (max-width: 600px) {
-  /* Стол — на всю ширину и максимальную высоту */
+/* ─── Большие экраны (компьютеры) ─────────────────────────── */
+@media (min-width: 1200px) {
   .players-ring {
-    width: 100vw;
-    height: 62vh;
-    max-height: 520px;
+    max-width: 850px;
+    max-height: 580px;
   }
-
-  /* Места — шире, чтобы влезали крупные карты */
   .player-seat {
-    width: 110px;
-    padding: 0.25rem 0.15rem;
+    width: 112px;
+    padding: 0.4rem 0.3rem;
   }
-
-  /* Карты — очень крупные, читаемые */
   .card {
     width: 48px;
-    height: 70px;
+    height: 66px;
   }
   .card .rank {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
   .card .suit {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
   .card-center {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
   .card-placeholder {
     width: 48px;
-    height: 70px;
+    height: 66px;
   }
-
-  /* Аватар и текст крупнее */
   .player-avatar-ring {
     width: 40px;
     height: 40px;
@@ -1592,66 +1585,144 @@ body {
     font-size: 0.7rem;
   }
   .player-cards {
-    gap: 8px;
+    gap: 6px;
   }
-
-  /* Кнопки действий — крупнее, удобнее для пальцев */
   .action-btn {
-    font-size: 1.1rem;
-    padding: 0.8rem 0.2rem;
-    min-width: 80px;
+    font-size: 1rem;
+    padding: 0.6rem 0.3rem;
   }
-  .bet-slider-row input[type=range] {
-    height: 6px;
-  }
-  .bet-slider-row input[type=range]::-webkit-slider-thumb {
-    width: 26px;
-    height: 26px;
-  }
-  .bet-value-badge {
-    font-size: 1.1rem;
-    min-width: 56px;
-  }
-  .start-hand-btn {
-    font-size: 1.2rem;
-    padding: 0.9rem 1.5rem;
-  }
-
-  /* HUD — крупнее */
   .hud-item {
-    min-width: 60px;
-    padding: 0.3rem 0.5rem;
+    min-width: 56px;
+    padding: 0.25rem 0.5rem;
   }
   .hud-label {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
   }
   .hud-value {
-    font-size: 0.9rem;
-  }
-  .btn-menu-small {
     font-size: 0.85rem;
-    padding: 0.3rem 0.7rem;
-  }
-
-  /* Центр стола — карты и банк крупнее */
-  #communityCards {
-    gap: 10px;
   }
   .pot-info {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.8rem;
+  }
+  #communityCards {
+    gap: 8px;
+  }
+}
+
+/* ─── Средние экраны (ноутбуки, планшеты) ─────────────────── */
+@media (min-width: 601px) and (max-width: 1199px) {
+  .players-ring {
+    max-width: 700px;
+    max-height: 500px;
+  }
+  .player-seat {
+    width: 100px;
+  }
+  .card {
+    width: 42px;
+    height: 58px;
+  }
+  .card-placeholder {
+    width: 42px;
+    height: 58px;
+  }
+  .card .rank {
+    font-size: 0.75rem;
+  }
+  .card .suit {
+    font-size: 0.65rem;
+  }
+  .card-center {
+    font-size: 1.1rem;
+  }
+}
+
+/* ─── Телефоны (ширина < 600px) ───────────────────────────── */
+@media (max-width: 600px) {
+  .players-ring {
+    width: 100vw;
+    max-width: 100vw;
+    height: 58vh;
+    max-height: 460px;
+  }
+  .player-seat {
+    width: 90px;
+    padding: 0.2rem 0.1rem;
+  }
+  .card {
+    width: 34px;
+    height: 48px;
+  }
+  .card .rank {
+    font-size: 0.6rem;
+  }
+  .card .suit {
+    font-size: 0.5rem;
+  }
+  .card-center {
+    font-size: 0.85rem;
+  }
+  .card-placeholder {
+    width: 34px;
+    height: 48px;
+  }
+  .player-avatar-ring {
+    width: 30px;
+    height: 30px;
     font-size: 1rem;
-    padding: 0.3rem 1rem;
   }
-
-  /* Диалог бай-ина — крупнее */
-  .modal-card {
-    padding: 2rem 1.5rem;
-    max-width: 400px;
+  .player-name {
+    font-size: 0.6rem;
+    max-width: 78px;
   }
-  .buyin-value {
-    font-size: 2.8rem;
+  .player-chips {
+    font-size: 0.55rem;
   }
-
-  /* Перемещаем крайних игроков, чтобы не вылезали */
+  .player-bet {
+    font-size: 0.5rem;
+  }
+  .player-hand-name {
+    font-size: 0.5rem;
+  }
+  .player-cards {
+    gap: 4px;
+  }
+  .action-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.2rem;
+    min-width: 56px;
+  }
+  .bet-value-badge {
+    font-size: 0.75rem;
+    min-width: 38px;
+  }
+  .start-hand-btn {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+  .hud-item {
+    min-width: 40px;
+    padding: 0.1rem 0.25rem;
+  }
+  .hud-label {
+    font-size: 0.4rem;
+  }
+  .hud-value {
+    font-size: 0.6rem;
+  }
+  .btn-menu-small {
+    font-size: 0.55rem;
+    padding: 0.15rem 0.35rem;
+  }
+  .pot-info {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+  }
+  #communityCards {
+    gap: 4px;
+  }
+  /* Корректировка позиций на телефоне */
   #player-0 { left: -5%; }
   #player-3 { right: -5%; }
   #player-1 { top: -2%; left: 4%; }
@@ -1660,32 +1731,84 @@ body {
   #player-5 { bottom: -2%; left: 8%; }
 }
 
-/* Для очень маленьких экранов (< 400px) — чуть меньше, но всё ещё крупно */
+/* ─── Очень маленькие телефоны (< 400px) ───────────────────── */
 @media (max-width: 400px) {
+  .players-ring {
+    height: 50vh;
+    max-height: 380px;
+  }
   .player-seat {
-    width: 100px;
-    padding: 0.2rem 0.1rem;
+    width: 78px;
+    padding: 0.15rem 0.1rem;
   }
   .card {
-    width: 42px;
-    height: 62px;
+    width: 28px;
+    height: 40px;
   }
   .card .rank {
-    font-size: 0.85rem;
+    font-size: 0.5rem;
   }
   .card .suit {
-    font-size: 0.7rem;
+    font-size: 0.4rem;
   }
   .card-center {
-    font-size: 1.2rem;
+    font-size: 0.7rem;
   }
   .card-placeholder {
-    width: 42px;
-    height: 62px;
+    width: 28px;
+    height: 40px;
   }
-  .players-ring {
-    height: 56vh;
+  .player-avatar-ring {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+  .player-name {
+    font-size: 0.5rem;
+    max-width: 66px;
+  }
+  .player-chips {
+    font-size: 0.45rem;
+  }
+  .player-bet {
+    font-size: 0.4rem;
+  }
+  .player-hand-name {
+    font-size: 0.4rem;
+  }
+  .player-cards {
+    gap: 3px;
+  }
+  .action-btn {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.15rem;
+    min-width: 48px;
+  }
+  .bet-value-badge {
+    font-size: 0.65rem;
+    min-width: 32px;
+  }
+  .start-hand-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+  .hud-item {
+    min-width: 34px;
+    padding: 0.1rem 0.2rem;
+  }
+  .hud-value {
+    font-size: 0.55rem;
+  }
+  .pot-info {
+    font-size: 0.55rem;
+  }
+  #communityCards {
+    gap: 3px;
   }
   #player-0 { left: -6%; }
   #player-3 { right: -6%; }
+  #player-1 { top: -3%; left: 2%; }
+  #player-2 { top: -3%; right: 2%; }
+  #player-4 { bottom: -3%; right: 6%; }
+  #player-5 { bottom: -3%; left: 6%; }
 }

@@ -7,21 +7,21 @@
 
 /* ─── Переменные ────────────────────────────────────────────── */
 :root {
-  --felt:        #0d3320;      /* тёмно-зелёное сукно */
-  --felt-mid:    #114429;      /* сукно чуть светлее */
-  --felt-light:  #1a5c38;      /* акцент сукна */
-  --dark:        #0a0e1a;      /* фон */
-  --dark-card:   #131928;      /* карточки/панели */
-  --dark-panel:  #1c2336;      /* панели */
-  --gold:        #c9a84c;      /* золото */
-  --gold-light:  #f0cc6a;      /* светлое золото */
-  --gold-dim:    #7a5f28;      /* тёмное золото */
-  --red:         #c0392b;      /* красный акцент */
-  --red-bright:  #e74c3c;      /* яркий красный */
-  --green:       #27ae60;      /* зелёный */
+  --felt:        #0d3320;
+  --felt-mid:    #114429;
+  --felt-light:  #1a5c38;
+  --dark:        #0a0e1a;
+  --dark-card:   #131928;
+  --dark-panel:  #1c2336;
+  --gold:        #c9a84c;
+  --gold-light:  #f0cc6a;
+  --gold-dim:    #7a5f28;
+  --red:         #c0392b;
+  --red-bright:  #e74c3c;
+  --green:       #27ae60;
   --green-bright:#2ecc71;
   --blue:        #2980b9;
-  --white:       #f0e6d3;      /* тёплый белый (слоновая кость) */
+  --white:       #f0e6d3;
   --muted:       #7a8a9e;
   --border:      rgba(201,168,76,0.18);
   --border-mid:  rgba(201,168,76,0.35);
@@ -421,7 +421,6 @@ body {
   font-size: 0.85rem;
 }
 
-/* btn-back is styled via btn + btn-secondary, alias here */
 .btn-back {
   /* inherits .btn .btn-secondary — no extra styles needed */
 }
@@ -545,8 +544,8 @@ body {
 
 .players-ring {
   position: relative;
-  width: min(480px, calc(100vw - 1rem));
-  height: min(300px, 42vh);
+  width: min(540px, calc(100vw - 1rem));
+  height: min(350px, 45vh);
 }
 
 /* Зелёный стол в центре */
@@ -556,8 +555,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 65%;
-  height: 72%;
+  width: 60%;
+  height: 68%;
   background: radial-gradient(ellipse at 40% 35%, #166b3c, #0d3320, #072010);
   border-radius: 50%;
   border: 3px solid rgba(201,168,76,0.3);
@@ -569,11 +568,11 @@ body {
   z-index: 0;
 }
 
-/* ─── Места игроков по кругу ────────────────────────────────── */
+/* ─── Места игроков по кругу (раздвинуты) ──────────────────── */
 
 .player-seat {
   position: absolute;
-  width: 88px;
+  width: 100px;
   background: rgba(12,20,38,0.85);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -583,13 +582,13 @@ body {
   backdrop-filter: blur(4px);
 }
 
-/* Расположение мест по кругу (6 мест) */
-#player-0 { top: 50%;  left: 0;    transform: translateY(-50%); }
-#player-1 { top: 8%;   left: 8%;   transform: none; }
-#player-2 { top: 8%;   right: 8%;  transform: none; }
-#player-3 { top: 50%;  right: 0;   transform: translateY(-50%); }
-#player-4 { bottom: 5%; right: 10%; transform: none; }
-#player-5 { bottom: 5%; left: 10%; transform: none; }
+/* Расположение мест с увеличенным расстоянием */
+#player-0 { top: 50%;  left: -3%; transform: translateY(-50%); }
+#player-1 { top: 0%;   left: 5%;   transform: none; }
+#player-2 { top: 0%;   right: 5%;  transform: none; }
+#player-3 { top: 50%;  right: -3%; transform: translateY(-50%); }
+#player-4 { bottom: 0%; right: 10%; transform: none; }
+#player-5 { bottom: 0%; left: 10%;  transform: none; }
 
 /* Активный (ходит) */
 .player-seat.active {
@@ -637,7 +636,7 @@ body {
   justify-content: center;
   padding: 0.5rem;
   gap: 3px;
-  min-height: 60px;
+  min-height: 70px;
 }
 
 .empty-seat-icon {
@@ -686,7 +685,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 80px;
+  max-width: 90px;
   line-height: 1.2;
 }
 
@@ -705,7 +704,7 @@ body {
 
 .player-cards {
   display: flex;
-  gap: 2px;
+  gap: 3px;
   justify-content: center;
   margin-top: 0.25rem;
 }
@@ -778,7 +777,7 @@ body {
 
 #communityCards {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   justify-content: center;
   margin-bottom: 0.35rem;
 }
@@ -796,12 +795,12 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ИГРАЛЬНЫЕ КАРТЫ
+   ИГРАЛЬНЫЕ КАРТЫ (увеличенные)
 ═══════════════════════════════════════════════════════════════ */
 
 .card {
-  width: 30px;
-  height: 44px;
+  width: 36px;
+  height: 52px;
   border-radius: 5px;
   background: #fff;
   border: 1px solid rgba(0,0,0,0.15);
@@ -809,7 +808,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 2px;
+  padding: 3px 2px;
   position: relative;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   flex-shrink: 0;
@@ -842,18 +841,18 @@ body {
 }
 
 .card .rank {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: 900;
   line-height: 1;
 }
 
 .card .suit {
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   line-height: 1;
 }
 
 .card-center {
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
@@ -880,8 +879,8 @@ body {
 
 /* Плейсхолдер карты (ещё не открытой общей карты) */
 .card-placeholder {
-  width: 30px;
-  height: 44px;
+  width: 36px;
+  height: 52px;
   border-radius: 5px;
   background: rgba(255,255,255,0.04);
   border: 1px dashed rgba(255,255,255,0.12);
@@ -1510,6 +1509,24 @@ body {
   color: var(--muted);
   font-size: 0.85rem;
   padding: 1.5rem;
+}
+
+/* ─── Индикатор хода ───────────────────────────────────────── */
+
+.turn-indicator {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--gold);
+  font-size: 1.2rem;
+  animation: pulse 0.8s ease-in-out infinite;
+  text-shadow: 0 0 12px rgba(201,168,76,0.7);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50%      { opacity: 0.3; transform: translateX(-50%) scale(0.8); }
 }
 
 /* ─── Скроллбар ─────────────────────────────────────────────── */

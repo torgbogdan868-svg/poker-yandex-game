@@ -3,33 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <!-- Фиксация портретной ориентации -->
-  <meta name="screen-orientation" content="portrait">
-  <meta name="x5-orientation" content="portrait">
-  <meta name="orientation" content="portrait">
+  <!-- Фиксация экрана УБРАНА – никаких meta orientation -->
   <title>Техасский Холдем Покер</title>
   <script src="https://yandex.ru/games/sdk/v2"></script>
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Защита от поворота экрана */
-    @media (orientation: landscape) {
-      body::before {
-        content: "Пожалуйста, поверните телефон вертикально";
-        position: fixed;
-        inset: 0;
-        background: #0a0e1a;
-        color: #f0e6d3;
-        font-size: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        text-align: center;
-        padding: 2rem;
-        font-family: 'Inter', sans-serif;
-      }
-    }
-  </style>
 </head>
 <body>
 
@@ -364,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (pChips) pChips.textContent = (pd.chips || 1000) + ' 🪙';
   });
 
-  // ДЕЛЕГИРОВАНИЕ КЛИКОВ ПО СВОБОДНЫМ МЕСТАМ (решает проблему с onclick)
+  // ДЕЛЕГИРОВАНИЕ КЛИКОВ ПО СВОБОДНЫМ МЕСТАМ (надёжное решение)
   document.addEventListener('click', function(e) {
     const seatEl = e.target.closest('.player-seat.empty-seat');
     if (!seatEl) return;

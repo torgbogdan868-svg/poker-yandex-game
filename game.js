@@ -75,7 +75,6 @@
       try {
         if (typeof YaGames === 'undefined') return false;
         
-        // Защита от падения при локальном тестировании вне фрейма Яндекса
         if (window.self === window.top && !location.hostname.includes('yandex')) {
           console.log('Режим разработки: SDK Яндекса пропущен (запущено вне фрейма).');
           return false;
@@ -139,7 +138,7 @@
   })();
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  //  FIREBASE REALTIME DATABASE — замена localStorage TableStore
+  //  FIREBASE REALTIME DATABASE
   // ═══════════════════════════════════════════════════════════════════════════════
 
   const FIREBASE_DB_URL = 'https://poker-14ab8-default-rtdb.firebaseio.com/';
@@ -217,23 +216,63 @@
     return !seat || seat.playerId === null || seat.playerId === undefined;
   }
 
-  function normalizeSeats(seats, tableId) {
+  // ─── Нормализация мест ──────────────────────────────────────────────────────
+  function normalizeSeats(seats) {
     const result = [];
     for (let i = 0; i < MAX_SEATS; i++) {
       let s = Array.isArray(seats) ? seats[i] : (seats && seats[i]) || (seats && seats[String(i)]);
       if (!s) {
         s = { seatIdx: i, playerId: null, name: null, chips: 0, holeCards: [], currentBet: 0, totalBet: 0, folded: false, isAllIn: false, isDealer: false, ready: false };
-      } else if (s.playerId === undefined) {
-        s = { ...s, playerId: null };
+      } else {
+        // Гарантируем, что name не undefined
+        if (s.name === undefined) s.name = null;
+        // Если playerId есть, но name null, оставляем как есть (позже подставится "Игрок")
       }
       result.push(s);
     }
     return result;
   }
 
+  // ─── Нормализация всей таблицы (добавляем недостающие поля) ──────────────
   function normalizeTable(t, tableId) {
     if (!t) return t;
-    t.seats = normalizeSeats(t.seats, tableId);
+    // Восстанавливаем seats
+    t.seats = normalizeSeats(t.seats);
+
+    // Находим конфигурацию стола
+    const cfg = TABLES_CONFIG.find(c => c.id === tableId);
+    if (cfg) {
+      // Если отсутствуют smallBlind или bigBlind — ставим из конфига
+      if (t.smallBlind === undefined || t.smallBlind === null) {
+        t.smallBlind = Math.floor(cfg.bigBlind / 2);
+      }
+      if (t.bigBlind === undefined || t.bigBlind === null) {
+        t.bigBlind = cfg.bigBlind;
+      }
+      // Также если отсутствуют minBuy/maxBuy — подставляем
+      if (t.minBuy === undefined) t.minBuy = cfg.minBuy;
+      if (t.maxBuy === undefined) t.maxBuy = cfg.maxBuy;
+    }
+
+    // Другие поля по умолчанию
+    if (t.phase === undefined) t.phase = PHASE.PRE_FLOP;
+    if (!t.communityCards) t.communityCards = [];
+    if (t.pot === undefined) t.pot = 0;
+    if (t.currentSeat === undefined) t.currentSeat = -1;
+    if (t.dealerSeat === undefined) t.dealerSeat = -1;
+    if (t.smallBlindSeat === undefined) t.smallBlindSeat = -1;
+    if (t.bigBlindSeat === undefined) t.bigBlindSeat = -1;
+    if (t.callAmount === undefined) t.callAmount = 0;
+    if (t.lastRaiser === undefined) t.lastRaiser = -1;
+    if (!t.roundActed) t.roundActed = [];
+    if (t.bbSeatIdx === undefined) t.bbSeatIdx = -1;
+    if (t.handNumber === undefined) t.handNumber = 0;
+    if (!t.winners) t.winners = [];
+    if (!t.winningCards) t.winningCards = [];
+    if (t.gameStarted === undefined) t.gameStarted = false;
+    if (!t.deck) t.deck = [];
+    if (t.updatedAt === undefined) t.updatedAt = Date.now();
+
     return t;
   }
 
@@ -297,6 +336,8 @@
     },
 
     async saveTable(tableId, data) {
+      // Перед сохранением убедимся, что все поля есть
+      data = normalizeTable(data, tableId);
       this._cache[tableId] = data;
       await FirebaseDB.set(`tables/${tableId}`, data);
     },
@@ -628,11 +669,10 @@
     stopAutoActionTimer();
     if (!state || !state.gameStarted || state.phase === PHASE.SHOWDOWN) return;
     const seat = state.seats[state.currentSeat];
-    if (!seat || seat.playerId !== myPlayerId) return; // таймер только для текущего игрока
+    if (!seat || seat.playerId !== myPlayerId) return;
     if (seat.folded || seat.isAllIn) return;
 
     autoActionTimer = setTimeout(() => {
-      // Автоматически делаем чек, если можно, иначе фолд
       const toCall = Math.max(0, state.callAmount - seat.currentBet);
       const canCheck = toCall === 0;
       if (canCheck) {
@@ -642,7 +682,7 @@
         humanAction('fold');
         UI.notify('⏳ Авто-фолд', 1500);
       }
-    }, 10000); // 10 секунд
+    }, 10000);
   }
 
   function stopAutoActionTimer() {
@@ -661,7 +701,6 @@
     renderControls();
     renderInfo();
     syncNextHandCountdown();
-    // Запускаем таймер авто-действия, если ход наш
     startAutoActionTimer();
   }
 
@@ -696,7 +735,12 @@
     const phaseEl = document.getElementById('phaseDisplay');
     if (phaseEl) phaseEl.textContent = state.gameStarted ? (PHASE_NAMES[state.phase]||'') : 'Ожидание игроков';
     const blindEl = document.getElementById('blindsDisplay');
-    if (blindEl) blindEl.textContent = `Блайнды: ${state.smallBlind}/${state.bigBlind}`;
+    if (blindEl) {
+      // Защита от undefined
+      const sb = state.smallBlind !== undefined ? state.smallBlind : '?';
+      const bb = state.bigBlind   !== undefined ? state.bigBlind   : '?';
+      blindEl.textContent = `Блайнды: ${sb}/${bb}`;
+    }
   }
 
   function renderSeats() {
@@ -731,7 +775,6 @@
 
         const handName = seat.hand ? (isMe||state.phase===PHASE.SHOWDOWN ? seat.hand.name : '') : '';
 
-        // Индикатор хода (пульсирующая точка)
         const turnIndicator = isCurrent ? '<div class="turn-indicator">●</div>' : '';
 
         el.innerHTML = `
@@ -741,7 +784,7 @@
             ${turnIndicator}
           </div>
           <div class="player-info-compact">
-            <div class="player-name">${seat.name||'Игрок'}${dealerBadge}${sbBadge}${bbBadge}</div>
+            <div class="player-name">${seat.name || 'Игрок'}${dealerBadge}${sbBadge}${bbBadge}</div>
             <div class="player-chips">${seat.chips} 🪙</div>
             <div class="player-bet">${seat.currentBet>0?`Ставка: ${seat.currentBet}`:''}</div>
           </div>
@@ -776,7 +819,7 @@
     const betSlider = document.getElementById('betSlider');
     const betValue  = document.getElementById('betValue');
     if (betSlider && isMyTurn && mySeat) {
-      const min = state.bigBlind;
+      const min = state.bigBlind || 10;
       const max = mySeat.chips;
       betSlider.min = min;
       betSlider.max = max;
@@ -870,7 +913,7 @@
     state.pot = 0;
     state.winners = [];
     state.winningCards = [];
-    state.callAmount = state.bigBlind;
+    state.callAmount = state.bigBlind || 10;
     state.lastRaiser = -1;
     state.roundActed = [];
     state.bbSeatIdx = -1;
@@ -897,7 +940,6 @@
     renderGameTable();
     AudioManager.deal();
 
-    // Если ход принадлежит нам, показать уведомление
     if (state.currentSeat === mySeatIdx) {
       UI.notify('Ваш ход!', 1500);
       startAutoActionTimer();
@@ -928,9 +970,9 @@
   function postBlinds() {
     const sb = state.seats[state.smallBlindSeat];
     const bb = state.seats[state.bigBlindSeat];
-    if (sb) placeBet(state.smallBlindSeat, state.smallBlind);
-    if (bb) placeBet(state.bigBlindSeat,   state.bigBlind);
-    state.callAmount = state.bigBlind;
+    if (sb) placeBet(state.smallBlindSeat, state.smallBlind || Math.floor((state.bigBlind||10)/2));
+    if (bb) placeBet(state.bigBlindSeat,   state.bigBlind || 10);
+    state.callAmount = state.bigBlind || 10;
   }
 
   function placeBet(seatIdx, amount) {
@@ -973,7 +1015,7 @@
   }
 
   async function processSeatAction(seatIdx, action, amount) {
-    stopAutoActionTimer(); // останавливаем таймер, так как игрок сделал ход
+    stopAutoActionTimer();
 
     const s = state.seats[seatIdx];
     if (!s || s.folded || s.isAllIn) { advanceAction(); return; }
@@ -995,7 +1037,7 @@
       }
       case 'bet':
       case 'raise': {
-        const raiseAmt = Math.max(amount || state.bigBlind, state.bigBlind);
+        const raiseAmt = Math.max(amount || state.bigBlind || 10, state.bigBlind || 10);
         const actual   = Math.min(raiseAmt, s.chips);
         placeBet(seatIdx, actual);
         state.callAmount = s.currentBet;
@@ -1046,7 +1088,6 @@
     }
 
     state.currentSeat = next;
-    // Если ход перешёл к нам, уведомим и запустим таймер
     if (state.currentSeat === mySeatIdx) {
       UI.notify('Ваш ход!', 1500);
       startAutoActionTimer();
@@ -1100,7 +1141,6 @@
     state.currentSeat = first;
     if (first === -1) { nextPhase(); return; }
 
-    // Если ход наш, уведомим
     if (state.currentSeat === mySeatIdx) {
       UI.notify('Ваш ход!', 1500);
       startAutoActionTimer();
@@ -1224,7 +1264,6 @@
     await saveTableState();
     renderGameTable();
 
-    // Автоматический запуск новой раздачи через 15 секунд
     setTimeout(() => {
       if (state && !state.gameStarted) {
         startNewHand();
@@ -1339,7 +1378,6 @@
     const loader = document.getElementById('loadingScreen');
     if (loader) { loader.style.opacity='0'; setTimeout(()=>loader.classList.add('hidden'),600); }
 
-    // Ежедневная награда
     const now = Date.now();
     if (now - playerData.dailyReward.lastClaim >= 86400000) {
       setTimeout(() => {
@@ -1384,7 +1422,7 @@
     on('btnCheck', () => humanAction('check'));
     on('btnCall',  () => humanAction('call'));
     on('btnBet',   () => {
-      const v = parseInt(document.getElementById('betSlider')?.value || state?.bigBlind);
+      const v = parseInt(document.getElementById('betSlider')?.value || state?.bigBlind || 10);
       humanAction('bet', v);
     });
     on('btnRaise', () => {

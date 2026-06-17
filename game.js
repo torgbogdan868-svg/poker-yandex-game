@@ -24,10 +24,9 @@
   let lobbyUnsubscribe = null;
   let actionInProgress = false;
 
-  // ─── Таймер хода ─────────────────────────────────────────────
   let actionTimerInterval = null;
   let actionTimeLeft = 20;
-  const ACTION_TIMEOUT = 20; // секунд
+  const ACTION_TIMEOUT = 20;
 
   let settings = {
     musicVolume: 0.5,
@@ -514,6 +513,7 @@
       if (desiredSeat !== null) renderGameTable();
       return;
     }
+    // Вычитаем бай-ин из баланса
     playerData.chips -= buyIn;
     currentTableId = tableId;
     mySeatIdx = seat;
@@ -565,7 +565,7 @@
     await TableStore.saveTable(currentTableId, state);
   }
 
-  // ─── Управление таймером хода ──────────────────────────────
+  // ─── Таймер хода ──────────────────────────────────────────────
   function startActionTimer() {
     stopActionTimer();
     if (!state || !state.gameStarted) return;
@@ -581,7 +581,6 @@
       updateActionTimerDisplay();
       if (actionTimeLeft <= 0) {
         stopActionTimer();
-        // Авто-фолд
         UI.notify('⏳ Время вышло! Авто-фолд', 2000);
         humanAction('fold');
       }
@@ -595,7 +594,6 @@
     }
     actionTimeLeft = ACTION_TIMEOUT;
     updateActionTimerDisplay();
-    // Скрываем метку "Ход" если не наш ход
     const label = document.getElementById('actionTimerLabel');
     if (label) {
       const isOurTurn = state && state.gameStarted && state.currentSeat === mySeatIdx;
@@ -607,7 +605,6 @@
     const display = document.getElementById('actionTimerDisplay');
     if (display) {
       display.textContent = Math.max(0, actionTimeLeft);
-      // Мигание, если осталось мало
       if (actionTimeLeft <= 5) {
         display.style.color = '#e74c3c';
         display.style.animation = 'pulse 0.5s ease-in-out infinite';
@@ -633,7 +630,6 @@
     renderControls();
     renderInfo();
     syncNextHandCountdown();
-    // Запускаем таймер, если ход наш
     if (state.gameStarted && state.currentSeat === mySeatIdx) {
       startActionTimer();
     } else {
@@ -789,6 +785,7 @@
     }
     const t = await TableStore.getTable(currentTableId);
     if (t && t.seats[mySeatIdx]) {
+      // Забираем остаток фишек со стола
       const remaining = t.seats[mySeatIdx].chips || 0;
       playerData.chips += remaining;
     }
@@ -1135,9 +1132,10 @@
     });
 
     playerData.stats.handsPlayed++;
-    if (mySeatIdx !== -1 && state.seats[mySeatIdx]) {
-      playerData.chips = state.seats[mySeatIdx].chips;
-    }
+    // ★★★ ИСПРАВЛЕНИЕ: НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта при выходе ★★★
+    // if (mySeatIdx !== -1 && state.seats[mySeatIdx]) {
+    //   playerData.chips = state.seats[mySeatIdx].chips;   // ← ЭТУ СТРОКУ УДАЛИЛИ
+    // }
 
     const HAND_END_DELAY = 15000;
     state.handEndsAt = Date.now() + HAND_END_DELAY;

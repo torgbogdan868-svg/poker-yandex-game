@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ТЕХАССКИЙ ХОЛДЕМ — АДАПТИВНЫЙ ДЛЯ ВСЕХ ЭКРАНОВ
+   ТЕХАССКИЙ ХОЛДЕМ — 5 МЕСТ, АДАПТИВ
 ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap');
@@ -458,7 +458,7 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ИГРОВОЙ СТОЛ
+   ИГРОВОЙ СТОЛ — 5 МЕСТ
 ═══════════════════════════════════════════════════════════════ */
 
 #gameScreen {
@@ -545,9 +545,9 @@ body {
 .players-ring {
   position: relative;
   width: 100%;
-  max-width: 700px;
-  height: 62vh;
-  max-height: 500px;
+  max-width: 650px;
+  height: 56vh;
+  max-height: 480px;
   margin: 0 auto;
 }
 
@@ -558,8 +558,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 56%;
-  height: 62%;
+  width: 54%;
+  height: 60%;
   background: radial-gradient(ellipse at 40% 35%, #166b3c, #0d3320, #072010);
   border-radius: 50%;
   border: 3px solid rgba(201,168,76,0.3);
@@ -571,27 +571,26 @@ body {
   z-index: 0;
 }
 
-/* ─── Места игроков ─────────────────────────────────────────── */
+/* ─── 5 мест (расположение по кругу) ───────────────────────── */
 
 .player-seat {
   position: absolute;
-  width: 100px;
+  width: 96px;
   background: rgba(12,20,38,0.85);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 0.3rem 0.2rem;
+  padding: 0.25rem 0.15rem;
   z-index: 2;
   transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
   backdrop-filter: blur(4px);
 }
 
-/* Расположение с увеличенными отступами */
-#player-0 { top: 50%;  left: -4%; transform: translateY(-50%); }
-#player-1 { top: -2%;  left: 8%;  transform: none; }
-#player-2 { top: -2%;  right: 8%; transform: none; }
-#player-3 { top: 50%;  right: -4%; transform: translateY(-50%); }
-#player-4 { bottom: -2%; right: 12%; transform: none; }
-#player-5 { bottom: -2%; left: 12%;  transform: none; }
+/* Расположение для 5 мест */
+#player-0 { top: 50%;  left: -4%; transform: translateY(-50%); }          /* слева */
+#player-1 { top: -2%;  left: 12%; transform: none; }                     /* сверху слева */
+#player-2 { top: -2%;  right: 12%; transform: none; }                    /* сверху справа */
+#player-3 { top: 50%;  right: -4%; transform: translateY(-50%); }        /* справа */
+#player-4 { bottom: -2%; left: 50%; transform: translateX(-50%); }       /* снизу по центру */
 
 /* Активный */
 .player-seat.active {
@@ -637,19 +636,19 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.4rem;
   gap: 2px;
-  min-height: 72px;
+  min-height: 64px;
 }
 
 .empty-seat-icon {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   color: rgba(201,168,76,0.25);
   line-height: 1;
 }
 
 .empty-seat-label {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   color: rgba(201,168,76,0.3);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -664,15 +663,15 @@ body {
 /* ─── Аватар и имя ──────────────────────────────────────────── */
 
 .player-avatar-ring {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(201,168,76,0.15), rgba(0,0,0,0.5));
   border: 1.5px solid var(--border-mid);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   margin: 0 auto 0.2rem;
   position: relative;
 }
@@ -682,42 +681,42 @@ body {
 }
 
 .player-name {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: var(--white);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 84px;
+  max-width: 78px;
   line-height: 1.2;
 }
 
 .player-chips {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   color: var(--gold);
   font-weight: 600;
 }
 
 .player-bet {
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   color: #e67e22;
-  min-height: 0.7rem;
+  min-height: 0.6rem;
   font-weight: 600;
 }
 
 .player-cards {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   justify-content: center;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
 }
 
 .player-hand-name {
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   color: var(--gold-light);
   text-align: center;
   font-weight: 700;
-  min-height: 0.7rem;
+  min-height: 0.6rem;
   margin-top: 1px;
 }
 
@@ -728,12 +727,12 @@ body {
   background: linear-gradient(135deg, #f39c12, #d68910);
   color: #000;
   border-radius: 50%;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   font-size: 0.5rem;
   font-weight: 900;
   text-align: center;
-  line-height: 14px;
+  line-height: 13px;
   margin-left: 2px;
   vertical-align: middle;
 }
@@ -757,16 +756,16 @@ body {
   background: linear-gradient(135deg, #f0cc6a, #c9a84c);
   color: #1a0e00;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  font-size: 0.55rem;
+  width: 14px;
+  height: 14px;
+  font-size: 0.5rem;
   text-align: center;
-  line-height: 16px;
+  line-height: 14px;
   font-weight: 900;
   box-shadow: 0 0 8px rgba(201,168,76,0.6);
 }
 
-/* ─── Центр стола ───────────────────────────────────────────── */
+/* ─── Центр стола (общие карты — оставлены прежнего размера) ─ */
 
 .table-center {
   position: absolute;
@@ -775,7 +774,7 @@ body {
   transform: translate(-50%, -50%);
   text-align: center;
   z-index: 1;
-  width: 48%;
+  width: 50%;
 }
 
 #communityCards {
@@ -785,25 +784,10 @@ body {
   margin-bottom: 0.3rem;
 }
 
-.pot-info {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--gold);
-  text-shadow: 0 0 12px rgba(201,168,76,0.5);
-  background: rgba(0,0,0,0.4);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 0.15rem 0.6rem;
-  display: inline-block;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ИГРАЛЬНЫЕ КАРТЫ
-═══════════════════════════════════════════════════════════════ */
-
+/* Общие карты — оставляем крупными (как было на телефоне) */
 .card {
-  width: 42px;
-  height: 58px;
+  width: 38px;
+  height: 52px;
   border-radius: 4px;
   background: #fff;
   border: 1px solid rgba(0,0,0,0.15);
@@ -880,13 +864,24 @@ body {
     );
 }
 
-/* Плейсхолдер карты */
 .card-placeholder {
-  width: 42px;
-  height: 58px;
+  width: 38px;
+  height: 52px;
   border-radius: 4px;
   background: rgba(255,255,255,0.04);
   border: 1px dashed rgba(255,255,255,0.12);
+}
+
+.pot-info {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(201,168,76,0.5);
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.15rem 0.6rem;
+  display: inline-block;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1511,9 +1506,9 @@ body {
   left: 50%;
   transform: translateX(-50%);
   color: var(--gold);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   animation: pulse 0.8s ease-in-out infinite;
-  text-shadow: 0 0 16px rgba(201,168,76,0.8);
+  text-shadow: 0 0 12px rgba(201,168,76,0.7);
 }
 
 @keyframes pulse {
@@ -1542,16 +1537,16 @@ body {
 /* ─── Большие экраны (компьютеры) ─────────────────────────── */
 @media (min-width: 1200px) {
   .players-ring {
-    max-width: 850px;
-    max-height: 580px;
+    max-width: 800px;
+    max-height: 560px;
   }
   .player-seat {
-    width: 112px;
+    width: 110px;
     padding: 0.4rem 0.3rem;
   }
   .card {
-    width: 48px;
-    height: 66px;
+    width: 46px;
+    height: 64px;
   }
   .card .rank {
     font-size: 0.9rem;
@@ -1563,26 +1558,26 @@ body {
     font-size: 1.2rem;
   }
   .card-placeholder {
-    width: 48px;
-    height: 66px;
+    width: 46px;
+    height: 64px;
   }
   .player-avatar-ring {
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
   }
   .player-name {
-    font-size: 0.85rem;
-    max-width: 100px;
+    font-size: 0.8rem;
+    max-width: 96px;
   }
   .player-chips {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
   .player-bet {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   .player-hand-name {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   .player-cards {
     gap: 6px;
@@ -1613,28 +1608,19 @@ body {
 /* ─── Средние экраны (ноутбуки, планшеты) ─────────────────── */
 @media (min-width: 601px) and (max-width: 1199px) {
   .players-ring {
-    max-width: 700px;
-    max-height: 500px;
+    max-width: 650px;
+    max-height: 480px;
   }
   .player-seat {
-    width: 100px;
+    width: 96px;
   }
   .card {
-    width: 42px;
-    height: 58px;
+    width: 40px;
+    height: 56px;
   }
   .card-placeholder {
-    width: 42px;
-    height: 58px;
-  }
-  .card .rank {
-    font-size: 0.75rem;
-  }
-  .card .suit {
-    font-size: 0.65rem;
-  }
-  .card-center {
-    font-size: 1.1rem;
+    width: 40px;
+    height: 56px;
   }
 }
 
@@ -1643,16 +1629,16 @@ body {
   .players-ring {
     width: 100vw;
     max-width: 100vw;
-    height: 58vh;
-    max-height: 460px;
+    height: 52vh;
+    max-height: 420px;
   }
   .player-seat {
-    width: 90px;
-    padding: 0.2rem 0.1rem;
+    width: 78px;
+    padding: 0.15rem 0.1rem;
   }
   .card {
     width: 34px;
-    height: 48px;
+    height: 48px;   /* общие карты — оставляем 34×48, как было, они читаемы */
   }
   .card .rank {
     font-size: 0.6rem;
@@ -1668,82 +1654,81 @@ body {
     height: 48px;
   }
   .player-avatar-ring {
-    width: 30px;
-    height: 30px;
-    font-size: 1rem;
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
   }
   .player-name {
-    font-size: 0.6rem;
-    max-width: 78px;
+    font-size: 0.55rem;
+    max-width: 66px;
   }
   .player-chips {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
   }
   .player-bet {
-    font-size: 0.5rem;
+    font-size: 0.45rem;
   }
   .player-hand-name {
-    font-size: 0.5rem;
+    font-size: 0.45rem;
   }
   .player-cards {
-    gap: 4px;
+    gap: 3px;
   }
   .action-btn {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.2rem;
-    min-width: 56px;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.15rem;
+    min-width: 50px;
   }
   .bet-value-badge {
-    font-size: 0.75rem;
-    min-width: 38px;
+    font-size: 0.7rem;
+    min-width: 34px;
   }
   .start-hand-btn {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     padding: 0.5rem 1rem;
   }
   .hud-item {
-    min-width: 40px;
-    padding: 0.1rem 0.25rem;
+    min-width: 36px;
+    padding: 0.1rem 0.2rem;
   }
   .hud-label {
-    font-size: 0.4rem;
+    font-size: 0.35rem;
   }
   .hud-value {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
   }
   .btn-menu-small {
-    font-size: 0.55rem;
-    padding: 0.15rem 0.35rem;
+    font-size: 0.5rem;
+    padding: 0.15rem 0.3rem;
   }
   .pot-info {
-    font-size: 0.65rem;
-    padding: 0.1rem 0.5rem;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
   }
   #communityCards {
     gap: 4px;
   }
   /* Корректировка позиций на телефоне */
-  #player-0 { left: -5%; }
-  #player-3 { right: -5%; }
-  #player-1 { top: -2%; left: 4%; }
-  #player-2 { top: -2%; right: 4%; }
-  #player-4 { bottom: -2%; right: 8%; }
-  #player-5 { bottom: -2%; left: 8%; }
+  #player-0 { left: -6%; }
+  #player-3 { right: -6%; }
+  #player-1 { top: -2%; left: 8%; }
+  #player-2 { top: -2%; right: 8%; }
+  #player-4 { bottom: -2%; left: 50%; transform: translateX(-50%); }
 }
 
 /* ─── Очень маленькие телефоны (< 400px) ───────────────────── */
 @media (max-width: 400px) {
   .players-ring {
-    height: 50vh;
-    max-height: 380px;
+    height: 46vh;
+    max-height: 360px;
   }
   .player-seat {
-    width: 78px;
-    padding: 0.15rem 0.1rem;
+    width: 68px;
+    padding: 0.1rem 0.05rem;
   }
   .card {
-    width: 28px;
-    height: 40px;
+    width: 30px;
+    height: 42px;
   }
   .card .rank {
     font-size: 0.5rem;
@@ -1755,20 +1740,20 @@ body {
     font-size: 0.7rem;
   }
   .card-placeholder {
-    width: 28px;
-    height: 40px;
+    width: 30px;
+    height: 42px;
   }
   .player-avatar-ring {
-    width: 24px;
-    height: 24px;
-    font-size: 0.8rem;
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
   }
   .player-name {
-    font-size: 0.5rem;
-    max-width: 66px;
+    font-size: 0.45rem;
+    max-width: 56px;
   }
   .player-chips {
-    font-size: 0.45rem;
+    font-size: 0.4rem;
   }
   .player-bet {
     font-size: 0.4rem;
@@ -1777,38 +1762,37 @@ body {
     font-size: 0.4rem;
   }
   .player-cards {
-    gap: 3px;
+    gap: 2px;
   }
   .action-btn {
-    font-size: 0.7rem;
-    padding: 0.4rem 0.15rem;
-    min-width: 48px;
+    font-size: 0.65rem;
+    padding: 0.3rem 0.1rem;
+    min-width: 42px;
   }
   .bet-value-badge {
-    font-size: 0.65rem;
-    min-width: 32px;
+    font-size: 0.6rem;
+    min-width: 30px;
   }
   .start-hand-btn {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     padding: 0.4rem 0.8rem;
   }
   .hud-item {
-    min-width: 34px;
-    padding: 0.1rem 0.2rem;
+    min-width: 30px;
+    padding: 0.05rem 0.15rem;
   }
   .hud-value {
-    font-size: 0.55rem;
+    font-size: 0.45rem;
   }
   .pot-info {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
   }
   #communityCards {
     gap: 3px;
   }
-  #player-0 { left: -6%; }
-  #player-3 { right: -6%; }
-  #player-1 { top: -3%; left: 2%; }
-  #player-2 { top: -3%; right: 2%; }
-  #player-4 { bottom: -3%; right: 6%; }
-  #player-5 { bottom: -3%; left: 6%; }
+  #player-0 { left: -7%; }
+  #player-3 { right: -7%; }
+  #player-1 { top: -3%; left: 5%; }
+  #player-2 { top: -3%; right: 5%; }
+  #player-4 { bottom: -3%; left: 50%; transform: translateX(-50%); }
 }

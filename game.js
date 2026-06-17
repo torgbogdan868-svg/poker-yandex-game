@@ -3,7 +3,7 @@
 
   const STARTING_CHIPS    = 1000;
   const INITIAL_BIG_BLIND = 10;
-  const MAX_SEATS         = 5;  // ← ИСПРАВЛЕНО: 5 мест вместо 6
+  const MAX_SEATS         = 5;  // ← 5 мест
   const PHASE = { PRE_FLOP: 0, FLOP: 1, TURN: 2, RIVER: 3, SHOWDOWN: 4 };
   const PHASE_NAMES = ['Пре-флоп', 'Флоп', 'Тёрн', 'Ривер', 'Вскрытие'];
 

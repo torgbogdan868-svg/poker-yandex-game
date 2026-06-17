@@ -3,7 +3,7 @@
 
   const STARTING_CHIPS    = 1000;
   const INITIAL_BIG_BLIND = 10;
-  const MAX_SEATS         = 6;
+  const MAX_SEATS         = 5;  // ← ИСПРАВЛЕНО: 5 мест вместо 6
   const PHASE = { PRE_FLOP: 0, FLOP: 1, TURN: 2, RIVER: 3, SHOWDOWN: 4 };
   const PHASE_NAMES = ['Пре-флоп', 'Флоп', 'Тёрн', 'Ривер', 'Вскрытие'];
 
@@ -685,8 +685,9 @@
 
       if (!seat.playerId) {
         el.className = 'player-seat empty-seat';
+        // УБИРАЕМ onclick – теперь клик обрабатывается через делегирование в index.html
         el.innerHTML = `
-          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(${i})">
+          <div class="empty-seat-inner">
             <div class="empty-seat-icon">+</div>
             <div class="empty-seat-label">Свободно</div>
           </div>`;
@@ -1132,10 +1133,7 @@
     });
 
     playerData.stats.handsPlayed++;
-    // ★★★ ИСПРАВЛЕНИЕ: НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта при выходе ★★★
-    // if (mySeatIdx !== -1 && state.seats[mySeatIdx]) {
-    //   playerData.chips = state.seats[mySeatIdx].chips;   // ← ЭТУ СТРОКУ УДАЛИЛИ
-    // }
+    // ★★★ НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта при выходе ★★★
 
     const HAND_END_DELAY = 15000;
     state.handEndsAt = Date.now() + HAND_END_DELAY;

@@ -3,7 +3,7 @@
 
   const STARTING_CHIPS    = 1000;
   const INITIAL_BIG_BLIND = 10;
-  const MAX_SEATS         = 5;   // ← ИСПРАВЛЕНО: 5 мест
+  const MAX_SEATS         = 5;   // ← ИСПРАВЛЕНО: 5 мест (было 6)
   const PHASE = { PRE_FLOP: 0, FLOP: 1, TURN: 2, RIVER: 3, SHOWDOWN: 4 };
   const PHASE_NAMES = ['Пре-флоп', 'Флоп', 'Тёрн', 'Ривер', 'Вскрытие'];
 
@@ -473,13 +473,17 @@
   }
 
   function showBuyInDialog(cfg, desiredSeat = null) {
+    console.log('showBuyInDialog вызван', cfg, desiredSeat);
     const overlay = document.getElementById('buyinOverlay');
     const title   = document.getElementById('buyinTableName');
     const slider  = document.getElementById('buyinSlider');
     const valEl   = document.getElementById('buyinValue');
     const minEl   = document.getElementById('buyinMin');
     const maxEl   = document.getElementById('buyinMax');
-    if (!overlay) return;
+    if (!overlay) {
+      console.error('buyinOverlay не найден');
+      return;
+    }
     const actualMax = Math.min(cfg.maxBuy, playerData.chips);
     const actualMin = cfg.minBuy;
     if (title)  title.textContent  = cfg.name;
@@ -493,12 +497,15 @@
     }
     if (valEl) valEl.textContent = slider ? slider.value : actualMin;
     overlay.classList.remove('hidden');
+
     document.getElementById('buyinConfirm').onclick = async () => {
       const amount = slider ? parseInt(slider.value) : actualMin;
       overlay.classList.add('hidden');
       await doJoinTable(cfg.id, amount, desiredSeat);
     };
-    document.getElementById('buyinCancel').onclick = () => { overlay.classList.add('hidden'); };
+    document.getElementById('buyinCancel').onclick = () => {
+      overlay.classList.add('hidden');
+    };
   }
 
   async function doJoinTable(tableId, buyIn, desiredSeat = null) {
@@ -618,7 +625,7 @@
 
       if (!seat.playerId) {
         el.className = 'player-seat empty-seat';
-        // ВОЗВРАЩАЕМ onclick прямо в HTML – это надёжно работает
+        // КЛИК через onclick – надёжно работает
         el.innerHTML = `
           <div class="empty-seat-inner" onclick="PokerGame.takeSeat(${i})">
             <div class="empty-seat-icon">+</div>
@@ -698,12 +705,34 @@
 
   // ─── Действия игрока ──────────────────────────────────────────
   async function takeSeat(seatIdx) {
-    if (mySeatIdx !== -1) { UI.notify('Вы уже сидите за этим столом'); return; }
+    console.log('takeSeat вызван для места', seatIdx);
+    if (mySeatIdx !== -1) {
+      UI.notify('Вы уже сидите за этим столом');
+      return;
+    }
+    if (!currentTableId) {
+      UI.notify('Сначала войдите за стол');
+      console.error('currentTableId не задан!');
+      return;
+    }
     const t = await TableStore.getTable(currentTableId);
-    if (!t) return;
-    if (!isSeatFree(t.seats[seatIdx])) { UI.notify('Это место занято'); return; }
+    if (!t) {
+      UI.notify('Стол не найден');
+      console.error('Стол не найден для id:', currentTableId);
+      return;
+    }
+    if (!isSeatFree(t.seats[seatIdx])) {
+      UI.notify('Это место занято');
+      console.log('Место', seatIdx, 'занято');
+      return;
+    }
     const cfg = TABLES_CONFIG.find(c => c.id === currentTableId);
-    if (!cfg) return;
+    if (!cfg) {
+      UI.notify('Конфигурация стола не найдена');
+      console.error('Конфигурация не найдена для', currentTableId);
+      return;
+    }
+    console.log('Показываем диалог для cfg', cfg, 'место', seatIdx);
     showBuyInDialog(cfg, seatIdx);
   }
 
@@ -847,7 +876,7 @@
     return -1;
   }
 
-  // ─── Действия игрока (с защитой) ──────────────────────────
+  // ─── Действия игрока ──────────────────────────────────────────
   function humanAction(action, amount) {
     if (!state || !state.gameStarted) return;
     if (state.currentSeat !== mySeatIdx) return;
@@ -1044,7 +1073,10 @@
     });
 
     playerData.stats.handsPlayed++;
-    // НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта
+    // ★★★ ИСПРАВЛЕНИЕ: НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта при выходе ★★★
+    // if (mySeatIdx !== -1 && state.seats[mySeatIdx]) {
+    //   playerData.chips = state.seats[mySeatIdx].chips;   // ← ЭТУ СТРОКУ УДАЛИЛИ
+    // }
 
     const HAND_END_DELAY = 15000;
     state.handEndsAt = Date.now() + HAND_END_DELAY;

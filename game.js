@@ -7,14 +7,12 @@
   const PHASE = { PRE_FLOP: 0, FLOP: 1, TURN: 2, RIVER: 3, SHOWDOWN: 4 };
   const PHASE_NAMES = ['Пре-флоп', 'Флоп', 'Тёрн', 'Ривер', 'Вскрытие'];
 
-  // ─── Конфигурация столов ─────────────────────────────────────────────────────
   const TABLES_CONFIG = [
     { id: 'table_1', name: 'Стол №1 — Новичок',  bigBlind: 10,  minBuy: 100,  maxBuy: 500  },
     { id: 'table_2', name: 'Стол №2 — Любитель', bigBlind: 25,  minBuy: 250,  maxBuy: 1500 },
     { id: 'table_3', name: 'Стол №3 — Профи',    bigBlind: 100, minBuy: 1000, maxBuy: 5000 },
   ];
 
-  // ─── Состояние ───────────────────────────────────────────────────────────────
   let myPlayerId       = null;
   let myName           = 'Игрок';
   let myChips          = STARTING_CHIPS;
@@ -22,8 +20,9 @@
   let mySeatIdx        = -1;
   let state            = null;
   let syncTimer        = null;
-  let fbUnsubscribe    = null;   // отписка от Firebase listener (для стола)
-  let lobbyUnsubscribe = null;   // отписка от Firebase listener (для лобби)
+  let fbUnsubscribe    = null;
+  let lobbyUnsubscribe = null;
+  let actionInProgress = false; // Защита от двойных кликов
 
   let settings = {
     musicVolume: 0.5,
@@ -68,35 +67,26 @@
     };
   })();
 
-  // ─── Яндекс Игры SDK ─────────────────────────────────────────────────────────
+  // ─── Яндекс SDK ─────────────────────────────────────────────────────────────
   const YandexSDK = (() => {
     let ysdk=null, player=null, leaderboard=null, adShowing=false;
     async function init() {
       try {
         if (typeof YaGames === 'undefined') return false;
-        
         if (window.self === window.top && !location.hostname.includes('yandex')) {
-          console.log('Режим разработки: SDK Яндекса пропущен (запущено вне фрейма).');
+          console.log('Режим разработки: SDK Яндекса пропущен');
           return false;
         }
-
         const sdkInit = Promise.race([
-          YaGames.init().catch(err => {
-            console.warn("YaGames.init отклонен:", err);
-            return null;
-          }),
+          YaGames.init().catch(err => { console.warn("YaGames.init отклонен:", err); return null; }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('SDK timeout')), 3000))
         ]);
         ysdk = await sdkInit;
         if (!ysdk) return false;
-
         player = await ysdk.getPlayer({ scopes: false }).catch(() => null);
         try { leaderboard = await ysdk.getLeaderboards(); } catch(e) {}
         return true;
-      } catch(e) { 
-        console.warn("Не удалось инициализировать Яндекс SDK:", e.message);
-        return false; 
-      }
+      } catch(e) { console.warn("Не удалось инициализировать Яндекс SDK:", e.message); return false; }
     }
     async function loadData() {
       if (!player) return null;
@@ -137,15 +127,10 @@
     return { init, loadData, saveData, submitScore, getLeaderboardEntries, showAd, getPlayerName, getPlayerId };
   })();
 
-  // ═══════════════════════════════════════════════════════════════════════════════
-  //  FIREBASE REALTIME DATABASE
-  // ═══════════════════════════════════════════════════════════════════════════════
-
+  // ─── Firebase ──────────────────────────────────────────────────────────────
   const FIREBASE_DB_URL = 'https://poker-14ab8-default-rtdb.firebaseio.com/';
-
   const FirebaseDB = (() => {
     const base = FIREBASE_DB_URL.replace(/\/$/, '');
-
     async function get(path) {
       try {
         const url = `${base}/${path}.json?t=${Date.now()}`;
@@ -154,7 +139,6 @@
         return await res.json();
       } catch(e) { return null; }
     }
-
     async function set(path, data) {
       try {
         await fetch(`${base}/${path}.json`, {
@@ -164,7 +148,6 @@
         });
       } catch(e) {}
     }
-
     async function update(path, data) {
       try {
         await fetch(`${base}/${path}.json`, {
@@ -174,87 +157,59 @@
         });
       } catch(e) {}
     }
-
     function subscribe(path, callback) {
       let stopped = false;
-      let lastDataStr = null; 
-
+      let lastDataStr = null;
       async function poll() {
         while (!stopped) {
           try {
             const url = `${base}/${path}.json?t=${Date.now()}`;
             const res = await fetch(url, { cache: 'no-store' });
-            
             if (!res.ok) { await sleep(2000); continue; }
-            
             const data = await res.json();
             const dataStr = JSON.stringify(data);
-            
             if (dataStr !== lastDataStr) {
               lastDataStr = dataStr;
               if (!stopped) callback(data);
             }
-          } catch(e) {
-            console.error("Ошибка синхронизации Firebase:", e);
-          }
-          await sleep(1000); 
+          } catch(e) { console.error("Firebase sync error:", e); }
+          await sleep(1000);
         }
       }
-
       poll();
       return () => { stopped = true; };
     }
-
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
     return { get, set, update, subscribe };
   })();
 
-  // ─── TableStore — теперь использует Firebase ─────────────────────────────────
-
+  // ─── TableStore ─────────────────────────────────────────────────────────────
   function isSeatFree(seat) {
     return !seat || seat.playerId === null || seat.playerId === undefined;
   }
 
-  // ─── Нормализация мест ──────────────────────────────────────────────────────
   function normalizeSeats(seats) {
     const result = [];
     for (let i = 0; i < MAX_SEATS; i++) {
       let s = Array.isArray(seats) ? seats[i] : (seats && seats[i]) || (seats && seats[String(i)]);
       if (!s) {
         s = { seatIdx: i, playerId: null, name: null, chips: 0, holeCards: [], currentBet: 0, totalBet: 0, folded: false, isAllIn: false, isDealer: false, ready: false };
-      } else {
-        // Гарантируем, что name не undefined
-        if (s.name === undefined) s.name = null;
-        // Если playerId есть, но name null, оставляем как есть (позже подставится "Игрок")
       }
       result.push(s);
     }
     return result;
   }
 
-  // ─── Нормализация всей таблицы (добавляем недостающие поля) ──────────────
   function normalizeTable(t, tableId) {
     if (!t) return t;
-    // Восстанавливаем seats
     t.seats = normalizeSeats(t.seats);
-
-    // Находим конфигурацию стола
     const cfg = TABLES_CONFIG.find(c => c.id === tableId);
     if (cfg) {
-      // Если отсутствуют smallBlind или bigBlind — ставим из конфига
-      if (t.smallBlind === undefined || t.smallBlind === null) {
-        t.smallBlind = Math.floor(cfg.bigBlind / 2);
-      }
-      if (t.bigBlind === undefined || t.bigBlind === null) {
-        t.bigBlind = cfg.bigBlind;
-      }
-      // Также если отсутствуют minBuy/maxBuy — подставляем
+      if (t.smallBlind === undefined || t.smallBlind === null) t.smallBlind = Math.floor(cfg.bigBlind / 2);
+      if (t.bigBlind === undefined || t.bigBlind === null) t.bigBlind = cfg.bigBlind;
       if (t.minBuy === undefined) t.minBuy = cfg.minBuy;
       if (t.maxBuy === undefined) t.maxBuy = cfg.maxBuy;
     }
-
-    // Другие поля по умолчанию
     if (t.phase === undefined) t.phase = PHASE.PRE_FLOP;
     if (!t.communityCards) t.communityCards = [];
     if (t.pot === undefined) t.pot = 0;
@@ -272,13 +227,11 @@
     if (t.gameStarted === undefined) t.gameStarted = false;
     if (!t.deck) t.deck = [];
     if (t.updatedAt === undefined) t.updatedAt = Date.now();
-
     return t;
   }
 
   const TableStore = {
     _cache: {},
-
     _defaultTable(tableId) {
       const cfg = TABLES_CONFIG.find(t => t.id === tableId);
       return {
@@ -320,28 +273,17 @@
         updatedAt: Date.now(),
       };
     },
-
     async getTable(tableId) {
       let data = await FirebaseDB.get(`tables/${tableId}`);
-      if (data) { 
-        data = normalizeTable(data, tableId);
-        this._cache[tableId] = data; 
-        return data; 
-      }
+      if (data) { data = normalizeTable(data, tableId); this._cache[tableId] = data; return data; }
       return this._cache[tableId] || null;
     },
-
-    getTableSync(tableId) {
-      return this._cache[tableId] || null;
-    },
-
+    getTableSync(tableId) { return this._cache[tableId] || null; },
     async saveTable(tableId, data) {
-      // Перед сохранением убедимся, что все поля есть
       data = normalizeTable(data, tableId);
       this._cache[tableId] = data;
       await FirebaseDB.set(`tables/${tableId}`, data);
     },
-
     async getOrInit(tableId) {
       const existing = await this.getTable(tableId);
       if (existing) return existing;
@@ -349,26 +291,19 @@
       await this.saveTable(tableId, fresh);
       return fresh;
     },
-
     getOrInitSync(tableId) {
-      if (!this._cache[tableId]) {
-        this._cache[tableId] = this._defaultTable(tableId);
-      }
+      if (!this._cache[tableId]) this._cache[tableId] = this._defaultTable(tableId);
       return this._cache[tableId];
     },
-
     async joinTable(tableId, playerId, playerName, buyIn, desiredSeat = null) {
       let t = await this.getTable(tableId);
       if (!t) t = await this.getOrInit(tableId);
-
       const existing = t.seats.findIndex(s => s.playerId === playerId);
       if (existing !== -1) return existing;
-
       const free = desiredSeat !== null
         ? (isSeatFree(t.seats[desiredSeat]) ? desiredSeat : -1)
         : t.seats.findIndex(s => isSeatFree(s));
       if (free === -1) return -1;
-
       const freshSeat = await FirebaseDB.get(`tables/${tableId}/seats/${free}`);
       if (!isSeatFree(freshSeat)) {
         if (desiredSeat !== null) return -1;
@@ -377,10 +312,8 @@
         if (free2 === -1) return -1;
         return this._takeSeat(tableId, t2, free2, playerId, playerName, buyIn);
       }
-
       return this._takeSeat(tableId, t, free, playerId, playerName, buyIn);
     },
-
     async _takeSeat(tableId, t, seatIdx, playerId, playerName, buyIn) {
       const seatData = {
         seatIdx, playerId, name: playerName, chips: buyIn,
@@ -394,7 +327,6 @@
       await FirebaseDB.update(`tables/${tableId}`, { updatedAt: t.updatedAt });
       return seatIdx;
     },
-
     async leaveTable(tableId, playerId) {
       const t = await this.getTable(tableId);
       if (!t) return;
@@ -411,21 +343,16 @@
       this._cache[tableId] = t;
       await FirebaseDB.update(`tables/${tableId}`, { updatedAt: t.updatedAt });
     },
-
     async preloadAll() {
       for (const cfg of TABLES_CONFIG) {
         let data = await FirebaseDB.get(`tables/${cfg.id}`);
-        if (data) {
-          data = normalizeTable(data, cfg.id);
-          this._cache[cfg.id] = data;
-        } else {
-          this._cache[cfg.id] = this._defaultTable(cfg.id);
-        }
+        if (data) { data = normalizeTable(data, cfg.id); this._cache[cfg.id] = data; }
+        else { this._cache[cfg.id] = this._defaultTable(cfg.id); }
       }
     }
   };
 
-  // ─── Менеджер экранов ────────────────────────────────────────────────────────
+  // ─── ScreenManager ──────────────────────────────────────────────────────────
   const ScreenManager = (() => {
     function show(id) {
       document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.classList.add('hidden'); });
@@ -463,13 +390,11 @@
   function renderLobby() {
     const container = document.getElementById('lobbyTablesList');
     if (!container) return;
-
     let html = '';
     TABLES_CONFIG.forEach(cfg => {
       const t = TableStore.getOrInitSync(cfg.id);
       const occupied = t.seats.filter(s => !isSeatFree(s)).length;
       const isMine = t.seats.some(s => s.playerId === myPlayerId);
-
       html += `<div class="lobby-table-card ${isMine ? 'mine' : ''}">
         <div class="lobby-table-header">
           <span class="lobby-table-name">${cfg.name}</span>
@@ -492,14 +417,12 @@
       </div>`;
     });
     container.innerHTML = html;
-
     const chipsEl = document.getElementById('playerChipsMenu');
     if (chipsEl) chipsEl.textContent = `${playerData.chips} 🪙`;
     const nameEl = document.getElementById('playerNameMenu');
     if (nameEl) nameEl.textContent = myName;
   }
 
-  // ─── Обновить лобби из Firebase (фоном) ──────────────────────────────────────
   async function refreshLobbyFromFirebase() {
     await TableStore.preloadAll();
     renderLobby();
@@ -507,42 +430,32 @@
 
   function startLobbySync() {
     stopLobbySync();
-    
     lobbyUnsubscribe = FirebaseDB.subscribe('tables', (data) => {
       if (!data) return;
-      
       let changed = false;
       for (const cfg of TABLES_CONFIG) {
         if (data[cfg.id]) {
           const normalized = normalizeTable(data[cfg.id], cfg.id);
           const cached = TableStore._cache[cfg.id];
-          
           if (!cached || JSON.stringify(cached) !== JSON.stringify(normalized)) {
             TableStore._cache[cfg.id] = normalized;
             changed = true;
           }
         }
       }
-      
-      if (changed && currentTableId === null) {
-        renderLobby();
-      }
+      if (changed && currentTableId === null) renderLobby();
     });
   }
 
   function stopLobbySync() {
-    if (lobbyUnsubscribe) { 
-      lobbyUnsubscribe(); 
-      lobbyUnsubscribe = null; 
-    }
+    if (lobbyUnsubscribe) { lobbyUnsubscribe(); lobbyUnsubscribe = null; }
   }
 
-  // ─── Вход за стол ────────────────────────────────────────────────────────────
+  // ─── Вход и выход из игры ──────────────────────────────────────────────────
   async function joinTable(tableId) {
     AudioManager.click();
     const cfg = TABLES_CONFIG.find(t => t.id === tableId);
     if (!cfg) return;
-
     const t = await TableStore.getOrInit(tableId);
     const existingSeat = t.seats.findIndex(s => s.playerId === myPlayerId);
     if (existingSeat !== -1) {
@@ -551,22 +464,13 @@
       enterGame(tableId);
       return;
     }
-
     const occupied = t.seats.filter(s => !isSeatFree(s)).length;
-    if (occupied >= MAX_SEATS) {
-      UI.notify('Все места за этим столом заняты');
-      return;
-    }
-
-    if (playerData.chips < cfg.minBuy) {
-      UI.notify(`Недостаточно фишек! Minimum: ${cfg.minBuy} 🪙`);
-      return;
-    }
-
+    if (occupied >= MAX_SEATS) { UI.notify('Все места заняты'); return; }
+    if (playerData.chips < cfg.minBuy) { UI.notify(`Недостаточно фишек! Минимум: ${cfg.minBuy} 🪙`); return; }
     currentTableId = tableId;
     mySeatIdx = -1;
     enterGame(tableId);
-    UI.notify('Выберите свободное место за столом');
+    UI.notify('Выберите свободное место');
   }
 
   function showBuyInDialog(cfg, desiredSeat = null) {
@@ -577,7 +481,6 @@
     const minEl   = document.getElementById('buyinMin');
     const maxEl   = document.getElementById('buyinMax');
     if (!overlay) return;
-
     const actualMax = Math.min(cfg.maxBuy, playerData.chips);
     const actualMin = cfg.minBuy;
     if (title)  title.textContent  = cfg.name;
@@ -591,21 +494,18 @@
     }
     if (valEl) valEl.textContent = slider ? slider.value : actualMin;
     overlay.classList.remove('hidden');
-
     document.getElementById('buyinConfirm').onclick = async () => {
       const amount = slider ? parseInt(slider.value) : actualMin;
       overlay.classList.add('hidden');
       await doJoinTable(cfg.id, amount, desiredSeat);
     };
-    document.getElementById('buyinCancel').onclick = () => {
-      overlay.classList.add('hidden');
-    };
+    document.getElementById('buyinCancel').onclick = () => { overlay.classList.add('hidden'); };
   }
 
   async function doJoinTable(tableId, buyIn, desiredSeat = null) {
     const seat = await TableStore.joinTable(tableId, myPlayerId, myName, buyIn, desiredSeat);
     if (seat === -1) {
-      UI.notify(desiredSeat !== null ? 'Это место уже заняли, выберите другое' : 'Все места заняты!');
+      UI.notify(desiredSeat !== null ? 'Место занято, выберите другое' : 'Все места заняты!');
       if (desiredSeat !== null) renderGameTable();
       return;
     }
@@ -617,7 +517,7 @@
   }
 
   function enterGame(tableId) {
-    stopLobbySync(); 
+    stopLobbySync();
     ScreenManager.show('gameScreen');
     state = TableStore.getTableSync(tableId);
     renderGameTable();
@@ -634,15 +534,13 @@
     }
   }
 
-  // ─── Синхронизация через Firebase ─────────────────────────────────────────
+  // ─── Синхронизация ──────────────────────────────────────────────────────────
   function startSync() {
     stopSync();
     if (!currentTableId) return;
-
     fbUnsubscribe = FirebaseDB.subscribe(`tables/${currentTableId}`, (data) => {
       if (!data) return;
       data = normalizeTable(data, currentTableId);
-
       if (!state || JSON.stringify(state) !== JSON.stringify(data)) {
         TableStore._cache[currentTableId] = data;
         state = data;
@@ -671,7 +569,6 @@
     const seat = state.seats[state.currentSeat];
     if (!seat || seat.playerId !== myPlayerId) return;
     if (seat.folded || seat.isAllIn) return;
-
     autoActionTimer = setTimeout(() => {
       const toCall = Math.max(0, state.callAmount - seat.currentBet);
       const canCheck = toCall === 0;
@@ -686,13 +583,10 @@
   }
 
   function stopAutoActionTimer() {
-    if (autoActionTimer) {
-      clearTimeout(autoActionTimer);
-      autoActionTimer = null;
-    }
+    if (autoActionTimer) { clearTimeout(autoActionTimer); autoActionTimer = null; }
   }
 
-  // ─── Игровой стол UI ─────────────────────────────────────────────────────────
+  // ─── Игровой стол ─────────────────────────────────────────────────────────────
   function renderGameTable() {
     if (!state) return;
     renderCommunityCards();
@@ -736,7 +630,6 @@
     if (phaseEl) phaseEl.textContent = state.gameStarted ? (PHASE_NAMES[state.phase]||'') : 'Ожидание игроков';
     const blindEl = document.getElementById('blindsDisplay');
     if (blindEl) {
-      // Защита от undefined
       const sb = state.smallBlind !== undefined ? state.smallBlind : '?';
       const bb = state.bigBlind   !== undefined ? state.bigBlind   : '?';
       blindEl.textContent = `Блайнды: ${sb}/${bb}`;
@@ -760,23 +653,18 @@
           </div>`;
       } else {
         el.className = `player-seat ${seat.folded?'folded':''} ${seat.isAllIn?'allin':''} ${isCurrent?'active':''} ${isMe?'is-me':''}`;
-
         const dealerBadge = seat.isDealer ? ' <span class="dealer-btn">D</span>' : '';
         const sbBadge = state.smallBlindSeat===i ? ' <span class="blind-badge">SB</span>' : '';
         const bbBadge = state.bigBlindSeat===i   ? ' <span class="blind-badge">BB</span>' : '';
         const winBadge = (state.winners||[]).includes(i) ? '<div class="win-badge">★</div>' : '<div class="win-badge hidden">★</div>';
-
         const showCards = isMe || (state.phase===PHASE.SHOWDOWN && !seat.folded);
         let cardsHtml = '';
         (seat.holeCards||[]).forEach(c => {
           const hl = state.phase===PHASE.SHOWDOWN && (state.winningCards||[]).some(w=>w.id===c.id);
           cardsHtml += UI.cardHTML(c, !showCards, hl);
         });
-
         const handName = seat.hand ? (isMe||state.phase===PHASE.SHOWDOWN ? seat.hand.name : '') : '';
-
         const turnIndicator = isCurrent ? '<div class="turn-indicator">●</div>' : '';
-
         el.innerHTML = `
           <div style="position:relative">
             <div class="player-avatar-ring">${isMe?'👤':'🎩'}</div>
@@ -826,7 +714,6 @@
       if (Number(betSlider.value) < min || Number(betSlider.value) > max) betSlider.value = Math.min(min*2, max);
       if (betValue) betValue.textContent = betSlider.value;
     }
-
     const leaveBtn = document.getElementById('btnLeaveTable');
     if (leaveBtn) leaveBtn.classList.remove('hidden');
   }
@@ -836,24 +723,17 @@
     if (el) el.textContent = state.gameStarted ? `Раздача #${state.handNumber}` : 'Лобби';
   }
 
-  // ─── Захватить конкретное место ───────────────────────────────────────────────
+  // ─── Действия игрока ──────────────────────────────────────────────────────────
   async function takeSeat(seatIdx) {
-    if (mySeatIdx !== -1) {
-      UI.notify('Вы уже сидите за этим столом');
-      return;
-    }
+    if (mySeatIdx !== -1) { UI.notify('Вы уже сидите за этим столом'); return; }
     const t = await TableStore.getTable(currentTableId);
     if (!t) return;
-    if (!isSeatFree(t.seats[seatIdx])) {
-      UI.notify('Это место занято');
-      return;
-    }
+    if (!isSeatFree(t.seats[seatIdx])) { UI.notify('Это место занято'); return; }
     const cfg = TABLES_CONFIG.find(c => c.id === currentTableId);
     if (!cfg) return;
     showBuyInDialog(cfg, seatIdx);
   }
 
-  // ─── Выход со стола ──────────────────────────────────────────────────────────
   async function leaveTable() {
     stopAutoActionTimer();
     if (!currentTableId || mySeatIdx === -1) {
@@ -861,7 +741,7 @@
       stopNextHandCountdown();
       ScreenManager.show('mainMenu');
       await refreshLobbyFromFirebase();
-      startLobbySync(); 
+      startLobbySync();
       return;
     }
     const t = await TableStore.getTable(currentTableId);
@@ -870,7 +750,6 @@
       playerData.chips += remaining;
     }
     await TableStore.leaveTable(currentTableId, myPlayerId);
-
     if (state && state.gameStarted) {
       const fresh = await TableStore.getTable(currentTableId);
       if (fresh) {
@@ -885,7 +764,6 @@
         }
       }
     }
-
     currentTableId = null;
     mySeatIdx = -1;
     state = null;
@@ -894,17 +772,14 @@
     saveProgress();
     ScreenManager.show('mainMenu');
     await refreshLobbyFromFirebase();
-    startLobbySync(); 
+    startLobbySync();
   }
 
-  // ─── Начать новую раздачу ────────────────────────────────────────────────────
+  // ─── Новая раздача ───────────────────────────────────────────────────────────
   async function startNewHand() {
     if (!state) return;
     const activePlayers = state.seats.filter(s => !isSeatFree(s) && s.chips > 0);
-    if (activePlayers.length < 2) {
-      UI.notify('Нужно минимум 2 игрока!');
-      return;
-    }
+    if (activePlayers.length < 2) { UI.notify('Нужно минимум 2 игрока!'); return; }
 
     state.handNumber = (state.handNumber || 0) + 1;
     state.gameStarted = true;
@@ -917,6 +792,7 @@
     state.lastRaiser = -1;
     state.roundActed = [];
     state.bbSeatIdx = -1;
+    state.handEndsAt = null; // сброс таймера
 
     state.seats.forEach(s => {
       s.holeCards = [];
@@ -1004,19 +880,22 @@
     return -1;
   }
 
-  // ─── Действие игрока ─────────────────────────────────────────────────────────
+  // ─── Действия игрока (с защитой от двойных кликов) ─────────────────────────
   function humanAction(action, amount) {
+    if (actionInProgress) return; // защита от двойного нажатия
     if (!state || !state.gameStarted) return;
     if (state.currentSeat !== mySeatIdx) return;
     const seat = state.seats[mySeatIdx];
     if (!seat || seat.folded || seat.isAllIn) return;
     AudioManager.resume();
+    actionInProgress = true;
+    // разблокируем через 300 мс
+    setTimeout(() => { actionInProgress = false; }, 300);
     processSeatAction(mySeatIdx, action, amount);
   }
 
   async function processSeatAction(seatIdx, action, amount) {
     stopAutoActionTimer();
-
     const s = state.seats[seatIdx];
     if (!s || s.folded || s.isAllIn) { advanceAction(); return; }
 
@@ -1065,7 +944,6 @@
 
   async function advanceAction() {
     stopAutoActionTimer();
-
     const activePlayers = state.seats.filter(s => s.playerId && !s.folded && !s.isAllIn);
     const notFolded     = state.seats.filter(s => s.playerId && !s.folded);
 
@@ -1081,7 +959,6 @@
     }
 
     const next = nextActiveSeat(state.currentSeat);
-
     if (isBettingRoundComplete(next)) {
       nextPhase();
       return;
@@ -1100,14 +977,11 @@
     if (nextSeat === -1) return true;
     const active = state.seats.filter(s => s.playerId && !s.folded && !s.isAllIn);
     if (active.length === 0) return true;
-
     const allEven = active.every(s => s.currentBet === state.callAmount || s.chips === 0);
     if (!allEven) return false;
-
     if (state.lastRaiser !== -1) {
       return nextSeat === state.lastRaiser;
     }
-
     const roundActed = state.roundActed || [];
     const allActed   = active.every(s => roundActed.includes(state.seats.indexOf(s)));
     if (state.phase === PHASE.PRE_FLOP) {
@@ -1243,6 +1117,22 @@
     state.winningCards = [];
     state.handEndsAt = null;
 
+    // Сбрасываем состояние всех игроков (кроме победителей)
+    state.seats.forEach((s, i) => {
+      s.currentBet = 0;
+      s.totalBet = 0;
+      s.folded = isSeatFree(s) || s.chips === 0;
+      s.isAllIn = false;
+      s.hand = null;
+      // Если игрок не победитель, убираем его карты
+      if (!winners.includes(i)) {
+        s.holeCards = [];
+      } else {
+        // победитель сохраняет карты для отображения
+      }
+    });
+
+    // Проверка на нулевые фишки
     state.seats.forEach((s, i) => {
       if (s.playerId && s.chips <= 0) {
         if (s.playerId === myPlayerId) {
@@ -1255,7 +1145,7 @@
             stopSync();
             ScreenManager.show('mainMenu');
             await refreshLobbyFromFirebase();
-            startLobbySync(); 
+            startLobbySync();
           }, 3000);
         }
       }
@@ -1264,6 +1154,7 @@
     await saveTableState();
     renderGameTable();
 
+    // Автоматический запуск новой раздачи через 15 секунд
     setTimeout(() => {
       if (state && !state.gameStarted) {
         startNewHand();
@@ -1271,7 +1162,7 @@
     }, 15000);
   }
 
-  // ─── Таймер обратного отсчёта до следующей раздачи ───────────────────────────
+  // ─── Таймер обратного отсчёта ──────────────────────────────────────────────
   let nextHandTimerInterval = null;
 
   function startNextHandCountdown() {
@@ -1318,7 +1209,7 @@
     if (data.myName)     myName = data.myName;
   }
 
-  // ─── Меню ────────────────────────────────────────────────────────────────────
+  // ─── Меню и навигация ──────────────────────────────────────────────────────
   function renderMainMenu() {
     const el = document.getElementById('playerChipsMenu');
     if (el) el.textContent = `${playerData.chips} 🪙`;
@@ -1371,9 +1262,9 @@
     buildUI();
 
     ScreenManager.show('mainMenu');
-    renderMainMenu(); 
-    await refreshLobbyFromFirebase(); 
-    startLobbySync(); 
+    renderMainMenu();
+    await refreshLobbyFromFirebase();
+    startLobbySync();
 
     const loader = document.getElementById('loadingScreen');
     if (loader) { loader.style.opacity='0'; setTimeout(()=>loader.classList.add('hidden'),600); }
@@ -1394,13 +1285,13 @@
   function buildUI() {
     const on = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
 
-    on('btnPlay', async () => { 
-      AudioManager.click(); 
-      ScreenManager.show('mainMenu'); 
-      await refreshLobbyFromFirebase(); 
-      startLobbySync(); 
+    on('btnPlay', async () => {
+      AudioManager.click();
+      ScreenManager.show('mainMenu');
+      await refreshLobbyFromFirebase();
+      startLobbySync();
     });
-    
+
     on('btnProfile',  () => { AudioManager.click(); renderStatsScreen(); ScreenManager.show('profileScreen'); });
     on('btnShop',     () => { AudioManager.click(); ScreenManager.show('shopScreen'); });
     on('btnLeader',   () => { AudioManager.click(); renderLeaderboard(); ScreenManager.show('leaderboardScreen'); });
@@ -1409,11 +1300,11 @@
     on('btnDaily',    () => { AudioManager.click(); ScreenManager.show('dailyScreen'); });
 
     document.querySelectorAll('.btn-back').forEach(btn =>
-      btn.addEventListener('click', () => { 
-        AudioManager.click(); 
-        ScreenManager.show('mainMenu'); 
-        renderMainMenu(); 
-        startLobbySync(); 
+      btn.addEventListener('click', () => {
+        AudioManager.click();
+        ScreenManager.show('mainMenu');
+        renderMainMenu();
+        startLobbySync();
       })
     );
 

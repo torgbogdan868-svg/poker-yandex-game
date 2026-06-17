@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Техасский Холдем Покер</title>
+  <script src="https://yandex.ru/games/sdk/v2"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ЗАГРУЗОЧНЫЙ ЭКРАН -->
+<div id="loadingScreen" class="screen active">
+  <div class="loader-logo">♠ POKER ♥</div>
+  <div style="color:#6e7681;font-size:0.85rem;margin-bottom:1.5rem;letter-spacing:2px;">ТЕХАССКИЙ ХОЛДЕМ</div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  <div style="margin-top:1rem;color:#6e7681;font-size:0.75rem;">Загрузка...</div>
+</div>
+
+<!-- ГЛАВНОЕ МЕНЮ / ЛОББИ -->
+<div id="mainMenu" class="screen hidden">
+  <div class="menu-header">
+    <div class="menu-logo">♠  Hold'em ♥</div>
+    <div class="menu-subtitle">ПОКЕР</div>
+
+    <div class="player-info-bar">
+      <div class="player-avatar">🎩</div>
+      <div>
+        <div class="p-name" id="playerNameMenu">Игрок</div>
+        <div class="p-chips" id="playerChipsMenu">1000 🪙</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Смена имени -->
+  <div class="name-change-row">
+    <input type="text" id="nameInput" class="name-input" placeholder="Ваш никнейм..." maxlength="16">
+    <button class="btn btn-secondary btn-sm" id="btnChangeName">✏️</button>
+  </div>
+
+  <!-- Список столов -->
+  <div class="lobby-section-title">🎰 Выберите стол</div>
+  <div id="lobbyTablesList" class="lobby-tables-list">
+    <!-- Заполняется JS -->
+  </div>
+
+  <!-- Меню навигации -->
+  <nav class="menu-grid-small">
+    <button class="menu-btn-sm" id="btnProfile">👤 Профиль</button>
+    <button class="menu-btn-sm" id="btnShop">🛒 Магазин</button>
+    <button class="menu-btn-sm" id="btnLeader">📊 Топ</button>
+    <button class="menu-btn-sm" id="btnDaily">🎁 Награда</button>
+    <button class="menu-btn-sm" id="btnSettings">⚙️ Настройки</button>
+    <button class="menu-btn-sm" id="btnHelp">📖 Правила</button>
+  </nav>
+</div>
+
+<!-- ИГРОВОЙ СТОЛ -->
+<div id="gameScreen" class="screen hidden">
+  <div class="game-layout">
+
+    <!-- HUD -->
+    <div class="game-hud">
+      <div class="hud-item">
+        <span class="hud-label">Раздача</span>
+        <span class="hud-value" id="handCount">#1</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Фаза</span>
+        <span class="hud-value" id="phaseDisplay">Ожидание</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Блайнды</span>
+        <span class="hud-value" id="blindsDisplay">5/10</span>
+      </div>
+      <button class="btn-menu-small" id="btnLeaveTable">🚪 Выйти</button>
+    </div>
+
+    <!-- Стол -->
+    <div class="table-area">
+      <div class="players-ring">
+
+        <div class="player-seat empty-seat" id="player-0" data-idx="0">
+          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(0)">
+            <div class="empty-seat-icon">+</div>
+            <div class="empty-seat-label">Свободно</div>
+          </div>
+        </div>
+
+        <div class="player-seat empty-seat" id="player-1" data-idx="1">
+          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(1)">
+            <div class="empty-seat-icon">+</div>
+            <div class="empty-seat-label">Свободно</div>
+          </div>
+        </div>
+
+        <div class="player-seat empty-seat" id="player-2" data-idx="2">
+          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(2)">
+            <div class="empty-seat-icon">+</div>
+            <div class="empty-seat-label">Свободно</div>
+          </div>
+        </div>
+
+        <div class="player-seat empty-seat" id="player-3" data-idx="3">
+          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(3)">
+            <div class="empty-seat-icon">+</div>
+            <div class="empty-seat-label">Свободно</div>
+          </div>
+        </div>
+
+        <div class="player-seat empty-seat" id="player-4" data-idx="4">
+          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(4)">
+            <div class="empty-seat-icon">+</div>
+            <div class="empty-seat-label">Свободно</div>
+          </div>
+        </div>
+
+        <div class="player-seat empty-seat" id="player-5" data-idx="5">
+          <div class="empty-seat-inner" onclick="PokerGame.takeSeat(5)">
+            <div class="empty-seat-icon">+</div>
+            <div class="empty-seat-label">Свободно</div>
+          </div>
+        </div>
+
+        <!-- Центр стола -->
+        <div class="table-center">
+          <div id="communityCards"></div>
+          <div class="pot-info" id="potDisplay">Банк: 0 🪙</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Панель управления -->
+    <div class="controls-panel">
+      <!-- Кнопка начать раздачу (когда игроки собрались) -->
+      <button class="action-btn start-hand-btn hidden" id="btnStartHand">🃏 Начать раздачу</button>
+
+      <!-- Ставка -->
+      <div class="bet-slider-row" id="betSliderRow">
+        <span style="font-size:0.75rem;color:#b0b8c4;">Ставка:</span>
+        <input type="range" id="betSlider" min="10" max="1000" value="20">
+        <div class="bet-value-badge" id="betValue">20</div>
+      </div>
+      <div class="action-btns">
+        <button class="action-btn hidden" id="btnFold">🗑 Фолд</button>
+        <button class="action-btn hidden" id="btnCheck">✔ Чек</button>
+        <button class="action-btn hidden" id="btnCall">📞 Колл</button>
+        <button class="action-btn hidden" id="btnBet">💰 Бет</button>
+        <button class="action-btn hidden" id="btnRaise">⬆ Рейз</button>
+        <button class="action-btn hidden" id="btnAllIn">🔥 Олл-ин</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ДИАЛОГ БАЙ-ИН -->
+<div id="buyinOverlay" class="modal-overlay hidden">
+  <div class="modal-card">
+    <h2 id="buyinTableName">Стол №1</h2>
+    <p style="color:#b0b8c4;font-size:0.85rem;">Выберите сумму для входа за стол</p>
+    <div class="buyin-range-row">
+      <span class="buyin-bound" id="buyinMin">100</span>
+      <input type="range" id="buyinSlider" min="100" max="500" value="300">
+      <span class="buyin-bound" id="buyinMax">500</span>
+    </div>
+    <div class="buyin-value">
+      <span id="buyinValue">300</span> 🪙
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" id="buyinConfirm">✅ Войти</button>
+      <button class="btn btn-secondary" id="buyinCancel">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПРОФИЛЬ -->
+<div id="profileScreen" class="screen hidden">
+  <div class="secondary-screen">
+    <div class="screen-header">
+      <button class="btn btn-secondary btn-back">← Назад</button>
+      <div class="screen-title">Профиль</div>
+    </div>
+    <div class="card-block">
+      <div class="profile-avatar">🎩</div>
+      <div class="profile-name" id="profileName">Игрок</div>
+      <div class="profile-chips" id="profileChips">1000 🪙</div>
+    </div>
+    <div class="card-block">
+      <h3>Статистика</h3>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-value" id="statGames">0</div><div class="stat-label">Партий</div></div>
+        <div class="stat-item"><div class="stat-value" id="statWins">0</div><div class="stat-label">Побед</div></div>
+        <div class="stat-item"><div class="stat-value" id="statWinPct">0%</div><div class="stat-label">% побед</div></div>
+        <div class="stat-item"><div class="stat-value" id="statMaxWin">0</div><div class="stat-label">Макс фишек</div></div>
+        <div class="stat-item"><div class="stat-value" id="statHands">0</div><div class="stat-label">Раздач</div></div>
+        <div class="stat-item"><div class="stat-value" id="statBigPot">0</div><div class="stat-label">Biggest pot</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- МАГАЗИН -->
+<div id="shopScreen" class="screen hidden">
+  <div class="secondary-screen">
+    <div class="screen-header">
+      <button class="btn btn-secondary btn-back">← Назад</button>
+      <div class="screen-title">Магазин</div>
+    </div>
+    <div class="card-block">
+      <h3>Получить фишки</h3>
+      <div class="shop-item">
+        <div class="shop-item-info">
+          <span class="shop-icon">📺</span>
+          <div><div style="font-weight:700">Реклама → Фишки</div><div style="font-size:0.78rem;color:#b0b8c4">+200 фишек за просмотр</div></div>
+        </div>
+        <button class="btn btn-primary" id="btnAdReward">Смотреть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ЛИДЕРБОРД -->
+<div id="leaderboardScreen" class="screen hidden">
+  <div class="secondary-screen">
+    <div class="screen-header">
+      <button class="btn btn-secondary btn-back">← Назад</button>
+      <div class="screen-title">Лидерборд</div>
+    </div>
+    <div class="card-block">
+      <h3>Топ игроков по фишкам</h3>
+      <div id="leaderboardList"><div class="loading">Загрузка...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ЕЖЕДНЕВНАЯ НАГРАДА -->
+<div id="dailyScreen" class="screen hidden">
+  <div class="secondary-screen">
+    <div class="screen-header">
+      <button class="btn btn-secondary btn-back">← Назад</button>
+      <div class="screen-title">Ежедневная награда</div>
+    </div>
+    <div class="card-block">
+      <h3>Календарь наград (30 дней)</h3>
+      <p style="font-size:0.8rem;color:#b0b8c4;margin-bottom:1rem">Заходите каждый день за нарастающей наградой!</p>
+      <div class="daily-grid" id="dailyGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- НАСТРОЙКИ -->
+<div id="settingsScreen" class="screen hidden">
+  <div class="secondary-screen">
+    <div class="screen-header">
+      <button class="btn btn-secondary btn-back">← Назад</button>
+      <div class="screen-title">Настройки</div>
+    </div>
+    <div class="card-block">
+      <h3>Звук</h3>
+      <div class="setting-row"><label>Музыка</label><input type="range" id="musicVol" min="0" max="100" value="50"></div>
+      <div class="setting-row"><label>Звуковые эффекты</label><input type="range" id="sfxVol" min="0" max="100" value="70"></div>
+      <div class="setting-row"><label>Анимации</label><input type="checkbox" id="toggleAnim" checked></div>
+      <div class="setting-row"><label>Полный экран</label><button class="btn btn-secondary" id="btnFullscreen">⛶ Включить</button></div>
+    </div>
+    <button class="btn btn-primary" id="btnSaveSettings" style="width:100%;margin-top:0.5rem">💾 Сохранить</button>
+  </div>
+</div>
+
+<!-- СПРАВКА -->
+<div id="helpScreen" class="screen hidden">
+  <div class="secondary-screen">
+    <div class="screen-header">
+      <button class="btn btn-secondary btn-back">← Назад</button>
+      <div class="screen-title">Справка</div>
+    </div>
+    <div class="card-block help-section">
+      <h3>Порядок раздачи</h3>
+      <ol style="padding-left:1.2rem;color:#b0b8c4;font-size:0.85rem;line-height:2">
+        <li><strong style="color:#f8f8f2">Пре-флоп</strong> — по 2 карты, торговля по кругу</li>
+        <li><strong style="color:#f8f8f2">Флоп</strong> — 3 общие карты, снова торговля</li>
+        <li><strong style="color:#f8f8f2">Тёрн</strong> — 4-я карта, торговля</li>
+        <li><strong style="color:#f8f8f2">Ривер</strong> — 5-я карта, торговля</li>
+        <li><strong style="color:#f8f8f2">Вскрытие</strong> — победитель</li>
+      </ol>
+    </div>
+    <div class="card-block help-section">
+      <h3>Комбинации (от сильнейшей)</h3>
+      <ul class="hand-rank-list">
+        <li><span class="hr-rank">👑</span><span class="hr-name">Флеш-рояль</span><span class="hr-desc">A K Q J 10 одной масти</span></li>
+        <li><span class="hr-rank">⚡</span><span class="hr-name">Стрит-флеш</span><span class="hr-desc">5 карт одной масти подряд</span></li>
+        <li><span class="hr-rank">4️⃣</span><span class="hr-name">Каре</span><span class="hr-desc">Четыре карты одного достоинства</span></li>
+        <li><span class="hr-rank">🏠</span><span class="hr-name">Фул-хаус</span><span class="hr-desc">Тройка + пара</span></li>
+        <li><span class="hr-rank">♠</span><span class="hr-name">Флеш</span><span class="hr-desc">5 карт одной масти</span></li>
+        <li><span class="hr-rank">📏</span><span class="hr-name">Стрит</span><span class="hr-desc">5 карт подряд</span></li>
+        <li><span class="hr-rank">3️⃣</span><span class="hr-name">Тройка</span><span class="hr-desc">Три карты одного достоинства</span></li>
+        <li><span class="hr-rank">2️⃣</span><span class="hr-name">Две пары</span><span class="hr-desc">Две пары карт</span></li>
+        <li><span class="hr-rank">1️⃣</span><span class="hr-name">Пара</span><span class="hr-desc">Две карты одного достоинства</span></li>
+        <li><span class="hr-rank">🎴</span><span class="hr-name">Старшая карта</span><span class="hr-desc">Наибольшая карта</span></li>
+      </ul>
+    </div>
+    <div class="card-block help-section">
+      <h3>Как играть с друзьями</h3>
+      <p style="color:#b0b8c4;font-size:0.85rem;line-height:1.7">
+        Откройте игру на разных устройствах или вкладках. Зайдите за один и тот же стол. Когда соберётся 2+ игроков — любой может нажать <strong style="color:#f8f8f2">«Начать раздачу»</strong>.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ПАУЗА / РЕКЛАМА -->
+<div id="pauseOverlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;z-index:900;font-size:2rem;color:#fff;">⏸ ПАУЗА</div>
+
+<!-- УВЕДОМЛЕНИЕ -->
+<div id="notification" class="hidden"></div>
+
+<script src="poker-engine.js"></script>
+<script src="game.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Ежедневная сетка
+  const grid = document.getElementById('dailyGrid');
+  if (grid) {
+    let html = '';
+    for (let i = 1; i <= 30; i++) {
+      const reward = i * 50;
+      html += `<div class="daily-day locked" id="day-${i}">
+        <span class="daily-day-num">${i}</span>
+        <span class="daily-day-reward">+${reward>1000?'1000+':reward}</span>
+      </div>`;
+    }
+    grid.innerHTML = html;
+  }
+  // Профиль — обновление при открытии
+  document.getElementById('btnProfile')?.addEventListener('click', () => {
+    const pd = window.PokerGame?.getPlayerData?.() || {};
+    const pName  = document.getElementById('profileName');
+    const pChips = document.getElementById('profileChips');
+    if (pName)  pName.textContent  = document.getElementById('playerNameMenu')?.textContent || 'Игрок';
+    if (pChips) pChips.textContent = (pd.chips || 1000) + ' 🪙';
+  });
+});
+</script>
+</body>
+</html>

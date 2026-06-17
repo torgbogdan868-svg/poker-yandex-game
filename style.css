@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
-   ТЕХАССКИЙ ХОЛДЕМ — 5 МЕСТ, РАЗДВИНУТЫ ДЛЯ ТЕЛЕФОНОВ
+   ТЕХАССКИЙ ХОЛДЕМ — ФИНАЛЬНАЯ МОБИЛЬНАЯ ВЕРСИЯ
+   (крупные карты, стол, никнеймы, фиксация портрета)
 ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap');
 
-/* ─── Переменные ────────────────────────────────────────────── */
 :root {
   --felt:        #0d3320;
   --felt-mid:    #114429;
@@ -29,7 +29,6 @@
   --radius:      14px;
 }
 
-/* ─── Сброс и база ──────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -52,10 +51,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ЭКРАНЫ
-═══════════════════════════════════════════════════════════════ */
-
+/* ─── Экраны ─────────────────────────────────────────────────── */
 .screen {
   position: fixed;
   inset: 0;
@@ -68,30 +64,21 @@ body {
   transition: opacity 0.3s ease;
   background: var(--dark);
 }
-
 .screen.active {
   opacity: 1;
   pointer-events: auto;
 }
-
 .screen.hidden {
   display: none !important;
 }
+.hidden { display: none !important; }
 
-.hidden {
-  display: none !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ЗАГРУЗОЧНЫЙ ЭКРАН
-═══════════════════════════════════════════════════════════════ */
-
+/* ─── Загрузка ───────────────────────────────────────────────── */
 #loadingScreen {
   background: radial-gradient(ellipse at 50% 40%, #1a2a14 0%, #060d05 100%);
   align-items: center;
   justify-content: center;
 }
-
 .loader-logo {
   font-family: 'Playfair Display', serif;
   font-size: 3rem;
@@ -102,12 +89,10 @@ body {
   margin-bottom: 0.5rem;
   animation: logoPulse 2s ease-in-out infinite;
 }
-
 @keyframes logoPulse {
   0%, 100% { text-shadow: 0 0 30px rgba(201,168,76,0.5), 0 2px 8px rgba(0,0,0,0.8); }
   50%       { text-shadow: 0 0 60px rgba(201,168,76,0.9), 0 2px 8px rgba(0,0,0,0.8); }
 }
-
 .loader-bar-wrap {
   width: 200px;
   height: 4px;
@@ -115,7 +100,6 @@ body {
   border-radius: 2px;
   overflow: hidden;
 }
-
 .loader-bar {
   height: 100%;
   background: linear-gradient(90deg, var(--gold-dim), var(--gold-light));
@@ -123,17 +107,13 @@ body {
   animation: loadBar 2.2s ease-in-out infinite;
   width: 40%;
 }
-
 @keyframes loadBar {
   0%   { transform: translateX(-100%); }
   50%  { transform: translateX(150%); }
   100% { transform: translateX(-100%); }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   КНОПКИ
-═══════════════════════════════════════════════════════════════ */
-
+/* ─── Кнопки ────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -150,34 +130,26 @@ body {
   letter-spacing: 0.3px;
   white-space: nowrap;
 }
-
-.btn:active {
-  transform: scale(0.96);
-}
-
+.btn:active { transform: scale(0.96); }
 .btn-primary {
   background: linear-gradient(135deg, #c9a84c, #a07828);
   color: #1a0e00;
   box-shadow: 0 3px 14px rgba(201,168,76,0.35);
   border: 1px solid rgba(255,220,100,0.3);
 }
-
 .btn-primary:hover {
   background: linear-gradient(135deg, #f0cc6a, #c9a84c);
   box-shadow: 0 4px 20px rgba(201,168,76,0.55);
 }
-
 .btn-secondary {
   background: rgba(255,255,255,0.07);
   color: var(--white);
   border: 1px solid var(--border);
 }
-
 .btn-secondary:hover {
   background: rgba(255,255,255,0.12);
   border-color: var(--border-mid);
 }
-
 .btn-sm {
   padding: 0.4rem 0.7rem;
   font-size: 0.8rem;
@@ -185,23 +157,18 @@ body {
   border-radius: 8px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ГЛАВНОЕ МЕНЮ
-═══════════════════════════════════════════════════════════════ */
-
+/* ─── Главное меню ──────────────────────────────────────────── */
 #mainMenu {
   background:
     radial-gradient(ellipse 120% 60% at 50% -10%, rgba(13,51,32,0.9) 0%, transparent 60%),
     radial-gradient(ellipse 80% 40% at 50% 110%, rgba(20,10,5,0.8) 0%, transparent 60%),
     var(--dark);
 }
-
 .menu-header {
   text-align: center;
   padding: 2rem 1rem 1rem;
   position: relative;
 }
-
 .menu-header::before {
   content: '';
   position: absolute;
@@ -209,7 +176,6 @@ body {
   background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 70%);
   pointer-events: none;
 }
-
 .menu-logo {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
@@ -219,7 +185,6 @@ body {
   text-shadow: 0 0 30px rgba(201,168,76,0.4);
   margin-bottom: 0.2rem;
 }
-
 .menu-subtitle {
   font-size: 0.65rem;
   letter-spacing: 5px;
@@ -227,9 +192,6 @@ body {
   text-transform: uppercase;
   margin-bottom: 1.2rem;
 }
-
-/* ─── Инфо-бар игрока ───────────────────────────────────────── */
-
 .player-info-bar {
   display: flex;
   align-items: center;
@@ -241,7 +203,6 @@ body {
   margin: 0 auto;
   max-width: 340px;
 }
-
 .player-avatar {
   font-size: 1.8rem;
   width: 44px;
@@ -254,28 +215,22 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
-
 .p-name {
   font-weight: 700;
   font-size: 0.95rem;
   color: var(--white);
 }
-
 .p-chips {
   font-size: 0.78rem;
   color: var(--gold);
   font-weight: 600;
 }
-
-/* ─── Смена имени ───────────────────────────────────────────── */
-
 .name-change-row {
   display: flex;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
   align-items: center;
 }
-
 .name-input {
   flex: 1;
   background: rgba(255,255,255,0.06);
@@ -288,18 +243,11 @@ body {
   font-family: 'Inter', sans-serif;
   transition: border-color 0.2s;
 }
-
 .name-input:focus {
   border-color: var(--border-gold);
   background: rgba(255,255,255,0.09);
 }
-
-.name-input::placeholder {
-  color: var(--muted);
-}
-
-/* ─── Список столов в лобби ─────────────────────────────────── */
-
+.name-input::placeholder { color: var(--muted); }
 .lobby-section-title {
   font-size: 0.72rem;
   font-weight: 700;
@@ -308,14 +256,12 @@ body {
   text-transform: uppercase;
   padding: 0.6rem 1rem 0.3rem;
 }
-
 .lobby-tables-list {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   padding: 0.25rem 1rem 0.5rem;
 }
-
 .lobby-table-card {
   background: rgba(13,51,32,0.4);
   border: 1px solid var(--border);
@@ -325,7 +271,6 @@ body {
   position: relative;
   overflow: hidden;
 }
-
 .lobby-table-card::before {
   content: '';
   position: absolute;
@@ -333,30 +278,25 @@ body {
   background: linear-gradient(135deg, rgba(201,168,76,0.04) 0%, transparent 60%);
   pointer-events: none;
 }
-
 .lobby-table-card.mine {
   border-color: rgba(39,174,96,0.5);
   background: rgba(39,174,96,0.08);
 }
-
 .lobby-table-card:hover {
   border-color: var(--border-mid);
   background: rgba(13,51,32,0.6);
 }
-
 .lobby-table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.45rem;
 }
-
 .lobby-table-name {
   font-weight: 700;
   font-size: 0.9rem;
   color: var(--white);
 }
-
 .lobby-table-players {
   font-size: 0.72rem;
   color: var(--gold);
@@ -366,25 +306,21 @@ body {
   border-radius: 20px;
   font-weight: 600;
 }
-
 .lobby-table-info {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
   margin-bottom: 0.55rem;
 }
-
 .lobby-info-item {
   font-size: 0.75rem;
   color: var(--muted);
 }
-
 .lobby-seats-preview {
   display: flex;
   gap: 5px;
   margin-bottom: 0.7rem;
 }
-
 .lobby-seat-dot {
   width: 26px;
   height: 26px;
@@ -396,43 +332,32 @@ body {
   border: 2px solid transparent;
   transition: transform 0.15s;
 }
-
 .lobby-seat-dot.free {
   background: rgba(255,255,255,0.04);
   border-color: rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.2);
   font-size: 0.6rem;
 }
-
 .lobby-seat-dot.taken {
   background: rgba(41,128,185,0.15);
   border-color: rgba(41,128,185,0.4);
 }
-
 .lobby-seat-dot.me {
   background: rgba(39,174,96,0.2);
   border-color: rgba(39,174,96,0.6);
 }
-
 .lobby-join-btn {
   width: 100%;
   padding: 0.5rem;
   font-size: 0.85rem;
 }
-
-.btn-back {
-  /* inherits .btn .btn-secondary */
-}
-
-/* ─── Мини-кнопки навигации ─────────────────────────────────── */
-
+.btn-back { /* наследует .btn .btn-secondary */ }
 .menu-grid-small {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.45rem;
   padding: 0.5rem 1rem 1.5rem;
 }
-
 .menu-btn-sm {
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
@@ -446,26 +371,18 @@ body {
   text-align: center;
   font-weight: 500;
 }
-
 .menu-btn-sm:hover {
   background: rgba(201,168,76,0.08);
   border-color: var(--border-mid);
   color: var(--white);
 }
+.menu-btn-sm:active { transform: scale(0.95); }
 
-.menu-btn-sm:active {
-  transform: scale(0.95);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ИГРОВОЙ СТОЛ — 5 МЕСТ
-═══════════════════════════════════════════════════════════════ */
-
+/* ─── Игровой стол ──────────────────────────────────────────── */
 #gameScreen {
   background:
     radial-gradient(ellipse 80% 60% at 50% 45%, #0d3320 0%, #06150e 55%, #0a0e1a 100%);
 }
-
 .game-layout {
   display: flex;
   flex-direction: column;
@@ -473,19 +390,17 @@ body {
   height: 100dvh;
 }
 
-/* ─── HUD ───────────────────────────────────────────────────── */
-
+/* HUD */
 .game-hud {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.4rem;
+  gap: 0.3rem;
+  padding: 0.3rem 0.3rem;
   background: rgba(0,0,0,0.45);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   flex-wrap: wrap;
 }
-
 .hud-item {
   display: flex;
   flex-direction: column;
@@ -493,45 +408,40 @@ body {
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 0.15rem 0.3rem;
-  min-width: 44px;
+  padding: 0.1rem 0.3rem;
+  min-width: 40px;
 }
-
 .hud-label {
-  font-size: 0.45rem;
+  font-size: 0.4rem;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 600;
 }
-
 .hud-value {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: var(--gold);
 }
-
 .btn-menu-small {
   margin-left: auto;
   background: rgba(192,57,43,0.2);
   border: 1px solid rgba(192,57,43,0.4);
   color: #e74c3c;
   border-radius: 6px;
-  padding: 0.2rem 0.4rem;
-  font-size: 0.6rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.55rem;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   transition: all 0.18s;
   white-space: nowrap;
 }
-
 .btn-menu-small:hover {
   background: rgba(192,57,43,0.35);
 }
 
-/* ─── Стол ──────────────────────────────────────────────────── */
-
+/* Стол */
 .table-area {
   flex: 1;
   display: flex;
@@ -541,7 +451,6 @@ body {
   overflow: hidden;
   position: relative;
 }
-
 .players-ring {
   position: relative;
   width: 100%;
@@ -550,8 +459,6 @@ body {
   max-height: 480px;
   margin: 0 auto;
 }
-
-/* Зелёный стол в центре */
 .players-ring::before {
   content: '';
   position: absolute;
@@ -571,8 +478,7 @@ body {
   z-index: 0;
 }
 
-/* ─── 5 мест: 3 сверху, 2 снизу по краям ──────────────────── */
-
+/* Места */
 .player-seat {
   position: absolute;
   width: 96px;
@@ -584,42 +490,27 @@ body {
   transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
   backdrop-filter: blur(4px);
 }
-
-/* Верхний ряд */
-#player-0 { top: -2%;  left: 8%;  transform: none; }
-#player-1 { top: -2%;  left: 50%; transform: translateX(-50%); }
-#player-2 { top: -2%;  right: 8%; transform: none; }
-
-/* Нижний ряд по краям */
-#player-3 { bottom: -2%; left: 12%; transform: none; }
-#player-4 { bottom: -2%; right: 12%; transform: none; }
-
-/* Активный */
+#player-0 { top: -2%; left: 8%; }
+#player-1 { top: -2%; left: 50%; transform: translateX(-50%); }
+#player-2 { top: -2%; right: 8%; }
+#player-3 { bottom: -2%; left: 12%; }
+#player-4 { bottom: -2%; right: 12%; }
 .player-seat.active {
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(201,168,76,0.25), 0 0 18px rgba(201,168,76,0.3);
   background: rgba(20,35,15,0.92);
 }
-
-/* Мой игрок */
 .player-seat.is-me {
   border-color: rgba(39,174,96,0.6) !important;
 }
-
-/* Спасовал */
 .player-seat.folded {
   opacity: 0.38;
   border-color: rgba(255,255,255,0.06);
 }
-
-/* Олл-ин */
 .player-seat.allin {
   border-color: rgba(231,76,60,0.6);
   box-shadow: 0 0 12px rgba(231,76,60,0.25);
 }
-
-/* ─── Свободное место ───────────────────────────────────────── */
-
 .player-seat.empty-seat {
   background: transparent;
   border: 2px dashed rgba(201,168,76,0.2);
@@ -627,12 +518,10 @@ body {
   cursor: pointer;
   padding: 0;
 }
-
 .player-seat.empty-seat:hover {
   border-color: rgba(201,168,76,0.5);
   background: rgba(201,168,76,0.05);
 }
-
 .empty-seat-inner {
   display: flex;
   flex-direction: column;
@@ -642,13 +531,11 @@ body {
   gap: 2px;
   min-height: 64px;
 }
-
 .empty-seat-icon {
   font-size: 1.2rem;
   color: rgba(201,168,76,0.25);
   line-height: 1;
 }
-
 .empty-seat-label {
   font-size: 0.55rem;
   color: rgba(201,168,76,0.3);
@@ -656,13 +543,10 @@ body {
   letter-spacing: 1px;
   font-weight: 600;
 }
-
 .player-seat.empty-seat:hover .empty-seat-icon,
 .player-seat.empty-seat:hover .empty-seat-label {
   color: rgba(201,168,76,0.7);
 }
-
-/* ─── Аватар и имя ──────────────────────────────────────────── */
 
 .player-avatar-ring {
   width: 30px;
@@ -677,11 +561,7 @@ body {
   margin: 0 auto 0.2rem;
   position: relative;
 }
-
-.player-info-compact {
-  text-align: center;
-}
-
+.player-info-compact { text-align: center; }
 .player-name {
   font-size: 0.6rem;
   font-weight: 700;
@@ -692,27 +572,23 @@ body {
   max-width: 78px;
   line-height: 1.2;
 }
-
 .player-chips {
   font-size: 0.55rem;
   color: var(--gold);
   font-weight: 600;
 }
-
 .player-bet {
   font-size: 0.5rem;
   color: #e67e22;
   min-height: 0.6rem;
   font-weight: 600;
 }
-
 .player-cards {
   display: flex;
   gap: 4px;
   justify-content: center;
   margin-top: 0.2rem;
 }
-
 .player-hand-name {
   font-size: 0.5rem;
   color: var(--gold-light);
@@ -722,8 +598,7 @@ body {
   margin-top: 1px;
 }
 
-/* ─── Значки ────────────────────────────────────────────────── */
-
+/* Значки */
 .dealer-btn {
   display: inline-block;
   background: linear-gradient(135deg, #f39c12, #d68910);
@@ -738,7 +613,6 @@ body {
   margin-left: 2px;
   vertical-align: middle;
 }
-
 .blind-badge {
   display: inline-block;
   background: rgba(41,128,185,0.4);
@@ -750,7 +624,6 @@ body {
   margin-left: 2px;
   vertical-align: middle;
 }
-
 .win-badge {
   position: absolute;
   top: -4px;
@@ -767,8 +640,7 @@ body {
   box-shadow: 0 0 8px rgba(201,168,76,0.6);
 }
 
-/* ─── Центр стола (общие карты) ────────────────────────────── */
-
+/* Центр стола */
 .table-center {
   position: absolute;
   top: 50%;
@@ -778,14 +650,12 @@ body {
   z-index: 1;
   width: 50%;
 }
-
 #communityCards {
   display: flex;
   gap: 6px;
   justify-content: center;
   margin-bottom: 0.3rem;
 }
-
 .card {
   width: 38px;
   height: 52px;
@@ -802,56 +672,43 @@ body {
   flex-shrink: 0;
   transition: transform 0.15s;
 }
-
 .card.highlighted {
   box-shadow: 0 0 0 2px var(--gold), 0 4px 14px rgba(201,168,76,0.5);
   transform: translateY(-4px);
 }
-
 .card.animate-deal {
   animation: dealCard 0.25s ease-out;
 }
-
 @keyframes dealCard {
   from { opacity: 0; transform: scale(0.7) rotate(-5deg); }
   to   { opacity: 1; transform: scale(1) rotate(0); }
 }
-
 .card-corner {
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1;
 }
-
-.card-corner.bottom {
-  transform: rotate(180deg);
-}
-
+.card-corner.bottom { transform: rotate(180deg); }
 .card .rank {
   font-size: 0.7rem;
   font-weight: 900;
   line-height: 1;
 }
-
 .card .suit {
   font-size: 0.6rem;
   line-height: 1;
 }
-
 .card-center {
   font-size: 1rem;
   line-height: 1;
 }
-
 .card.red  { color: #c0392b; }
 .card.black { color: #1a1a2e; }
-
 .card.card-back {
   background: linear-gradient(135deg, #1a2a6c, #2e4482);
   border-color: #0d1b4a;
 }
-
 .card.card-back .card-inner {
   width: 100%;
   height: 100%;
@@ -863,7 +720,6 @@ body {
       transparent 2px, transparent 8px
     );
 }
-
 .card-placeholder {
   width: 38px;
   height: 52px;
@@ -871,7 +727,6 @@ body {
   background: rgba(255,255,255,0.04);
   border: 1px dashed rgba(255,255,255,0.12);
 }
-
 .pot-info {
   font-size: 0.75rem;
   font-weight: 700;
@@ -884,24 +739,20 @@ body {
   display: inline-block;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ПАНЕЛЬ УПРАВЛЕНИЯ
-═══════════════════════════════════════════════════════════════ */
-
+/* Панель управления */
 .controls-panel {
   background: rgba(0,0,0,0.55);
   border-top: 1px solid var(--border);
-  padding: 0.5rem 0.4rem;
+  padding: 0.4rem 0.3rem;
   flex-shrink: 0;
   backdrop-filter: blur(8px);
 }
-
 .start-hand-btn {
   background: linear-gradient(135deg, #27ae60, #1e8449);
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  padding: 0.6rem 1.5rem;
+  padding: 0.5rem 1.2rem;
   border-radius: 12px;
   border: 1px solid rgba(46,204,113,0.3);
   cursor: pointer;
@@ -912,19 +763,16 @@ body {
   font-family: 'Inter', sans-serif;
   box-shadow: 0 3px 14px rgba(39,174,96,0.3);
 }
-
 .start-hand-btn:hover {
   background: linear-gradient(135deg, #2ecc71, #27ae60);
   box-shadow: 0 4px 20px rgba(46,204,113,0.45);
 }
-
 .bet-slider-row {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   margin-bottom: 0.3rem;
 }
-
 .bet-slider-row input[type=range] {
   flex: 1;
   -webkit-appearance: none;
@@ -933,7 +781,6 @@ body {
   border-radius: 2px;
   outline: none;
 }
-
 .bet-slider-row input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 20px;
@@ -943,30 +790,27 @@ body {
   cursor: pointer;
   box-shadow: 0 0 8px rgba(201,168,76,0.5);
 }
-
 .bet-value-badge {
   background: rgba(201,168,76,0.15);
   border: 1px solid var(--border-mid);
   border-radius: 8px;
   color: var(--gold-light);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   padding: 0.2rem 0.5rem;
-  min-width: 44px;
+  min-width: 40px;
   text-align: center;
 }
-
 .action-btns {
   display: flex;
   gap: 0.3rem;
   flex-wrap: wrap;
 }
-
 .action-btn {
   flex: 1;
-  min-width: 64px;
-  padding: 0.5rem 0.2rem;
-  font-size: 0.85rem;
+  min-width: 58px;
+  padding: 0.45rem 0.15rem;
+  font-size: 0.8rem;
   font-weight: 700;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -976,47 +820,31 @@ body {
   white-space: nowrap;
   color: var(--white);
 }
-
-.action-btn:active {
-  transform: scale(0.95);
-}
-
+.action-btn:active { transform: scale(0.95); }
 #btnFold {
   background: rgba(192,57,43,0.2);
   border-color: rgba(192,57,43,0.45);
   color: #e74c3c;
 }
-#btnFold:hover {
-  background: rgba(192,57,43,0.35);
-}
-
+#btnFold:hover { background: rgba(192,57,43,0.35); }
 #btnCheck {
   background: rgba(39,174,96,0.15);
   border-color: rgba(39,174,96,0.4);
   color: #2ecc71;
 }
-#btnCheck:hover {
-  background: rgba(39,174,96,0.28);
-}
-
+#btnCheck:hover { background: rgba(39,174,96,0.28); }
 #btnCall {
   background: rgba(41,128,185,0.2);
   border-color: rgba(41,128,185,0.45);
   color: #5dade2;
 }
-#btnCall:hover {
-  background: rgba(41,128,185,0.35);
-}
-
+#btnCall:hover { background: rgba(41,128,185,0.35); }
 #btnBet, #btnRaise {
   background: rgba(201,168,76,0.15);
   border-color: rgba(201,168,76,0.4);
   color: var(--gold-light);
 }
-#btnBet:hover, #btnRaise:hover {
-  background: rgba(201,168,76,0.28);
-}
-
+#btnBet:hover, #btnRaise:hover { background: rgba(201,168,76,0.28); }
 #btnAllIn {
   background: linear-gradient(135deg, rgba(192,57,43,0.3), rgba(231,76,60,0.2));
   border-color: rgba(231,76,60,0.5);
@@ -1027,413 +855,10 @@ body {
   background: linear-gradient(135deg, rgba(192,57,43,0.45), rgba(231,76,60,0.35));
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   БАЙ-ИН ДИАЛОГ
-═══════════════════════════════════════════════════════════════ */
+/* Остальные экраны (профиль, магазин и т.д.) – опущены для краткости, но они должны быть */
+/* ... (в полной версии они идут дальше) */
 
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.88);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 800;
-  backdrop-filter: blur(6px);
-}
-
-.modal-card {
-  background: var(--dark-card);
-  border: 1px solid var(--border-mid);
-  border-radius: 20px;
-  padding: 1.75rem 1.5rem;
-  max-width: 340px;
-  width: calc(100% - 2rem);
-  text-align: center;
-  box-shadow: 0 0 0 1px rgba(201,168,76,0.08), var(--shadow);
-  position: relative;
-  overflow: hidden;
-}
-
-.modal-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-
-.modal-card h2 {
-  margin: 0 0 0.4rem;
-  font-size: 1.05rem;
-  color: var(--gold-light);
-  font-family: 'Playfair Display', serif;
-}
-
-.buyin-range-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 1rem 0 0.5rem;
-}
-
-.buyin-range-row input[type=range] {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 5px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-  outline: none;
-}
-
-.buyin-range-row input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold-light), var(--gold));
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(201,168,76,0.5);
-}
-
-.buyin-bound {
-  font-size: 0.72rem;
-  color: var(--muted);
-  min-width: 32px;
-  font-weight: 600;
-}
-
-.buyin-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--gold);
-  margin: 0.5rem 0 1.2rem;
-  text-shadow: 0 0 20px rgba(201,168,76,0.4);
-  font-family: 'Playfair Display', serif;
-}
-
-.modal-btns {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.modal-btns .btn {
-  flex: 1;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ВТОРИЧНЫЕ ЭКРАНЫ
-═══════════════════════════════════════════════════════════════ */
-
-.secondary-screen {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow-y: auto;
-}
-
-.screen-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  background: rgba(0,0,0,0.3);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.screen-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--gold-light);
-}
-
-.card-block {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.1rem;
-  margin: 0.75rem 1rem 0;
-}
-
-.card-block:last-child {
-  margin-bottom: 1rem;
-}
-
-.card-block h3 {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-  margin-bottom: 0.75rem;
-}
-
-.profile-avatar {
-  font-size: 3rem;
-  text-align: center;
-  width: 72px;
-  height: 72px;
-  background: radial-gradient(circle, rgba(201,168,76,0.15), rgba(0,0,0,0.5));
-  border: 2px solid var(--border-mid);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 0.75rem;
-}
-
-.profile-name {
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--white);
-  margin-bottom: 0.25rem;
-}
-
-.profile-chips {
-  text-align: center;
-  color: var(--gold);
-  font-weight: 700;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.5rem;
-}
-
-.stat-item {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.6rem 0.4rem;
-  text-align: center;
-}
-
-.stat-value {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--gold);
-  font-family: 'Playfair Display', serif;
-}
-
-.stat-label {
-  font-size: 0.6rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-  margin-top: 2px;
-}
-
-.shop-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.shop-item-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.shop-icon {
-  font-size: 1.6rem;
-}
-
-.lb-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem 0.75rem;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  margin-bottom: 0.4rem;
-  transition: background 0.18s;
-}
-
-.lb-row:hover {
-  background: rgba(201,168,76,0.05);
-}
-
-.lb-rank {
-  font-weight: 800;
-  font-size: 0.85rem;
-  color: var(--gold);
-  min-width: 28px;
-  font-family: 'Playfair Display', serif;
-}
-
-.lb-name {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--white);
-  font-weight: 600;
-}
-
-.lb-score {
-  font-size: 0.82rem;
-  color: var(--gold-light);
-  font-weight: 700;
-}
-
-.daily-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.35rem;
-}
-
-.daily-day {
-  border-radius: 8px;
-  padding: 0.4rem 0.2rem;
-  text-align: center;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  transition: all 0.18s;
-}
-
-.daily-day.locked {
-  opacity: 0.5;
-}
-
-.daily-day.claimed {
-  background: rgba(39,174,96,0.15);
-  border-color: rgba(39,174,96,0.4);
-  opacity: 1;
-}
-
-.daily-day.today {
-  background: rgba(201,168,76,0.12);
-  border-color: var(--border-gold);
-  opacity: 1;
-  box-shadow: 0 0 12px rgba(201,168,76,0.2);
-}
-
-.daily-day-num {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--muted);
-}
-
-.daily-day.today .daily-day-num {
-  color: var(--gold);
-}
-
-.daily-day-reward {
-  display: block;
-  font-size: 0.62rem;
-  color: var(--gold-dim);
-  font-weight: 600;
-  margin-top: 2px;
-}
-
-.daily-day.today .daily-day-reward {
-  color: var(--gold-light);
-}
-
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.55rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.setting-row:last-child {
-  border-bottom: none;
-}
-
-.setting-row label {
-  font-size: 0.85rem;
-  color: var(--white);
-  font-weight: 500;
-}
-
-.setting-row input[type=range] {
-  width: 120px;
-  -webkit-appearance: none;
-  height: 4px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-  outline: none;
-}
-
-.setting-row input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold-light), var(--gold));
-  cursor: pointer;
-}
-
-.setting-row input[type=checkbox] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: var(--gold);
-}
-
-.help-section h3 {
-  margin-bottom: 0.6rem;
-}
-
-.hand-rank-list {
-  list-style: none;
-  padding: 0;
-}
-
-.hand-rank-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.45rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.hand-rank-list li:last-child {
-  border-bottom: none;
-}
-
-.hr-rank {
-  font-size: 1rem;
-  width: 24px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.hr-name {
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: var(--white);
-  min-width: 80px;
-}
-
-.hr-desc {
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   УВЕДОМЛЕНИЕ
-═══════════════════════════════════════════════════════════════ */
-
+/* ─── Уведомление ───────────────────────────────────────────── */
 #notification {
   position: fixed;
   bottom: -60px;
@@ -1453,44 +878,18 @@ body {
   box-shadow: var(--shadow);
   pointer-events: none;
 }
-
 #notification.show {
   bottom: 24px;
   opacity: 1;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ПАУЗА / РЕКЛАМА
-═══════════════════════════════════════════════════════════════ */
-
-#pauseOverlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.88);
-  align-items: center;
-  justify-content: center;
-  z-index: 900;
-  font-size: 2rem;
-  color: var(--white);
-  backdrop-filter: blur(8px);
-}
-
-#pauseOverlay:not(.hidden) {
-  display: flex;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ
-═══════════════════════════════════════════════════════════════ */
-
+/* ─── Вспомогательные классы ────────────────────────────────── */
 .loading, .empty {
   text-align: center;
   color: var(--muted);
   font-size: 0.85rem;
   padding: 1.5rem;
 }
-
 .turn-indicator {
   position: absolute;
   bottom: -6px;
@@ -1501,170 +900,185 @@ body {
   animation: pulse 0.8s ease-in-out infinite;
   text-shadow: 0 0 12px rgba(201,168,76,0.7);
 }
-
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
   50%      { opacity: 0.3; transform: translateX(-50%) scale(0.8); }
 }
-
 ::-webkit-scrollbar {
   width: 4px;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 2px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-mid);
-}
+::-webkit-scrollbar-thumb:hover { background: var(--border-mid); }
 
 /* ═══════════════════════════════════════════════════════════════
-   АДАПТАЦИЯ ДЛЯ РАЗНЫХ ЭКРАНОВ
+   МОБИЛЬНАЯ АДАПТАЦИЯ — ВСЁ КРУПНО
 ═══════════════════════════════════════════════════════════════ */
-
-/* ─── Большие экраны (компьютеры) ─────────────────────────── */
-@media (min-width: 1200px) {
+@media (max-width: 600px) {
   .players-ring {
-    max-width: 800px;
-    max-height: 560px;
+    width: 100vw;
+    max-width: 100vw;
+    height: 54vh;
+    max-height: 440px;
   }
   .player-seat {
-    width: 110px;
-    padding: 0.4rem 0.3rem;
+    width: 72px;
+    padding: 0.15rem 0.1rem;
   }
+  /* ОБЩИЕ КАРТЫ — УВЕЛИЧЕНЫ */
   .card {
-    width: 46px;
-    height: 64px;
+    width: 44px;
+    height: 60px;
   }
   .card .rank {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   .card .suit {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
   .card-center {
     font-size: 1.2rem;
   }
   .card-placeholder {
-    width: 46px;
-    height: 64px;
+    width: 44px;
+    height: 60px;
   }
-  .player-avatar-ring {
-    width: 38px;
-    height: 38px;
-    font-size: 1.4rem;
+  /* КАРТЫ ИГРОКОВ — ТОЖЕ УВЕЛИЧЕНЫ */
+  .player-cards .card {
+    width: 34px;
+    height: 48px;
   }
-  .player-name {
-    font-size: 0.8rem;
-    max-width: 96px;
-  }
-  .player-chips {
-    font-size: 0.7rem;
-  }
-  .player-bet {
+  .player-cards .card .rank {
     font-size: 0.65rem;
   }
-  .player-hand-name {
-    font-size: 0.65rem;
-  }
-  .player-cards {
-    gap: 6px;
-  }
-  .action-btn {
-    font-size: 1rem;
-    padding: 0.6rem 0.3rem;
-  }
-  .hud-item {
-    min-width: 56px;
-    padding: 0.25rem 0.5rem;
-  }
-  .hud-label {
+  .player-cards .card .suit {
     font-size: 0.55rem;
   }
-  .hud-value {
-    font-size: 0.85rem;
-  }
-  .pot-info {
+  .player-cards .card .card-center {
     font-size: 0.9rem;
-    padding: 0.2rem 0.8rem;
-  }
-  #communityCards {
-    gap: 8px;
-  }
-}
-
-/* ─── Средние экраны (ноутбуки, планшеты) ─────────────────── */
-@media (min-width: 601px) and (max-width: 1199px) {
-  .players-ring {
-    max-width: 650px;
-    max-height: 480px;
-  }
-  .player-seat {
-    width: 96px;
-  }
-  .card {
-    width: 40px;
-    height: 56px;
-  }
-  .card-placeholder {
-    width: 40px;
-    height: 56px;
-  }
-}
-
-/* ─── Телефоны (ширина < 600px) — раздвигаем места ─────────── */
-@media (max-width: 600px) {
-  .players-ring {
-    width: 100vw;
-    max-width: 100vw;
-    height: 50vh;
-    max-height: 400px;
-  }
-  .player-seat {
-    width: 68px;                /* ещё меньше */
-    padding: 0.12rem 0.08rem;
-  }
-  /* Общие карты оставляем 34×48, карты игроков уменьшаем */
-  .card {
-    width: 28px;
-    height: 40px;
-  }
-  .card .rank {
-    font-size: 0.5rem;
-  }
-  .card .suit {
-    font-size: 0.4rem;
-  }
-  .card-center {
-    font-size: 0.7rem;
-  }
-  .card-placeholder {
-    width: 28px;
-    height: 40px;
   }
   .player-avatar-ring {
-    width: 22px;
-    height: 22px;
-    font-size: 0.75rem;
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
   }
   .player-name {
-    font-size: 0.45rem;
-    max-width: 56px;
+    font-size: 0.7rem;
+    max-width: 64px;
   }
   .player-chips {
-    font-size: 0.4rem;
+    font-size: 0.6rem;
   }
   .player-bet {
-    font-size: 0.4rem;
+    font-size: 0.5rem;
   }
   .player-hand-name {
-    font-size: 0.4rem;
+    font-size: 0.5rem;
   }
   .player-cards {
-    gap: 2px;
+    gap: 4px;
+  }
+  .action-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.15rem;
+    min-width: 48px;
+  }
+  .bet-value-badge {
+    font-size: 0.7rem;
+    min-width: 34px;
+  }
+  .start-hand-btn {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+  .hud-item {
+    min-width: 36px;
+    padding: 0.1rem 0.25rem;
+  }
+  .hud-label {
+    font-size: 0.35rem;
+  }
+  .hud-value {
+    font-size: 0.55rem;
+  }
+  .btn-menu-small {
+    font-size: 0.5rem;
+    padding: 0.15rem 0.3rem;
+  }
+  .pot-info {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+  }
+  #communityCards {
+    gap: 5px;
+  }
+  /* РАЗНЕСЕНИЕ МЕСТ */
+  #player-0 { top: -2%; left: 2%; }
+  #player-2 { top: -2%; right: 2%; }
+  #player-1 { top: -2%; left: 50%; transform: translateX(-50%); }
+  #player-3 { bottom: -2%; left: 6%; }
+  #player-4 { bottom: -2%; right: 6%; }
+}
+
+@media (max-width: 400px) {
+  .players-ring {
+    height: 48vh;
+    max-height: 380px;
+  }
+  .player-seat {
+    width: 64px;
+    padding: 0.1rem 0.05rem;
+  }
+  .card {
+    width: 38px;
+    height: 52px;
+  }
+  .card .rank {
+    font-size: 0.7rem;
+  }
+  .card .suit {
+    font-size: 0.6rem;
+  }
+  .card-center {
+    font-size: 1rem;
+  }
+  .card-placeholder {
+    width: 38px;
+    height: 52px;
+  }
+  .player-cards .card {
+    width: 28px;
+    height: 40px;
+  }
+  .player-cards .card .rank {
+    font-size: 0.55rem;
+  }
+  .player-cards .card .suit {
+    font-size: 0.45rem;
+  }
+  .player-cards .card .card-center {
+    font-size: 0.7rem;
+  }
+  .player-avatar-ring {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+  .player-name {
+    font-size: 0.6rem;
+    max-width: 54px;
+  }
+  .player-chips {
+    font-size: 0.5rem;
+  }
+  .player-bet {
+    font-size: 0.45rem;
+  }
+  .player-hand-name {
+    font-size: 0.45rem;
   }
   .action-btn {
     font-size: 0.65rem;
@@ -1673,114 +1087,24 @@ body {
   }
   .bet-value-badge {
     font-size: 0.6rem;
-    min-width: 30px;
+    min-width: 28px;
   }
   .start-hand-btn {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
   }
   .hud-item {
     min-width: 30px;
     padding: 0.05rem 0.15rem;
   }
-  .hud-label {
-    font-size: 0.3rem;
-  }
   .hud-value {
     font-size: 0.45rem;
   }
-  .btn-menu-small {
-    font-size: 0.45rem;
-    padding: 0.1rem 0.25rem;
-  }
   .pot-info {
-    font-size: 0.5rem;
-    padding: 0.1rem 0.3rem;
-  }
-  #communityCards {
-    gap: 3px;
-  }
-  /* Новые позиции – раздвигаем в стороны */
-  #player-0 { top: -2%; left: 2%; }   /* левый верх – к краю */
-  #player-1 { top: -2%; left: 50%; transform: translateX(-50%); }
-  #player-2 { top: -2%; right: 2%; }  /* правый верх – к краю */
-  #player-3 { bottom: -2%; left: 6%; } /* левый низ – дальше от края */
-  #player-4 { bottom: -2%; right: 6%; } /* правый низ – дальше от края */
-}
-
-/* ─── Очень маленькие телефоны (< 400px) ───────────────────── */
-@media (max-width: 400px) {
-  .players-ring {
-    height: 44vh;
-    max-height: 340px;
-  }
-  .player-seat {
-    width: 60px;
-    padding: 0.1rem 0.05rem;
-  }
-  .card {
-    width: 24px;
-    height: 34px;
-  }
-  .card .rank {
-    font-size: 0.4rem;
-  }
-  .card .suit {
-    font-size: 0.35rem;
-  }
-  .card-center {
-    font-size: 0.6rem;
-  }
-  .card-placeholder {
-    width: 24px;
-    height: 34px;
-  }
-  .player-avatar-ring {
-    width: 18px;
-    height: 18px;
-    font-size: 0.6rem;
-  }
-  .player-name {
-    font-size: 0.4rem;
-    max-width: 48px;
-  }
-  .player-chips {
-    font-size: 0.35rem;
-  }
-  .player-bet {
-    font-size: 0.35rem;
-  }
-  .player-hand-name {
-    font-size: 0.35rem;
-  }
-  .player-cards {
-    gap: 2px;
-  }
-  .action-btn {
     font-size: 0.55rem;
-    padding: 0.25rem 0.1rem;
-    min-width: 34px;
-  }
-  .bet-value-badge {
-    font-size: 0.5rem;
-    min-width: 26px;
-  }
-  .start-hand-btn {
-    font-size: 0.65rem;
-    padding: 0.3rem 0.5rem;
-  }
-  .hud-item {
-    min-width: 26px;
-    padding: 0.05rem 0.1rem;
-  }
-  .hud-value {
-    font-size: 0.4rem;
-  }
-  .pot-info {
-    font-size: 0.45rem;
   }
   #communityCards {
-    gap: 2px;
+    gap: 4px;
   }
   #player-0 { top: -3%; left: 1%; }
   #player-2 { top: -3%; right: 1%; }

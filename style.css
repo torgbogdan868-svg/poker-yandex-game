@@ -1544,3 +1544,101 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-mid);
 }
+/* ─── Таймер хода ───────────────────────────────────────────── */
+#actionTimerContainer {
+  min-width: 64px;
+}
+#actionTimerDisplay {
+  font-weight: 900;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+#actionTimerDisplay.warning {
+  color: #e74c3c;
+  animation: blink 0.6s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}
+
+/* Индикатор "Ходите!" над игроком */
+.turn-indicator {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--gold);
+  font-size: 1.4rem;
+  animation: pulse 0.8s ease-in-out infinite;
+  text-shadow: 0 0 16px rgba(201,168,76,0.8);
+}
+
+/* ─── Адаптация для мобильных ────────────────────────────── */
+@media (max-width: 600px) {
+  .player-seat {
+    width: 78px;
+    padding: 0.3rem;
+  }
+  .card {
+    width: 28px;
+    height: 40px;
+  }
+  .card .rank { font-size: 0.55rem; }
+  .card .suit { font-size: 0.5rem; }
+  .card-center { font-size: 0.8rem; }
+  .players-ring {
+    width: min(380px, calc(100vw - 1rem));
+    height: min(280px, 40vh);
+  }
+}
+/* ─── Таймер хода ───────────────────────────────────────────── */
+#actionTimerContainer {
+  min-width: 64px;
+}
+#actionTimerDisplay {
+  font-weight: 900;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+#actionTimerDisplay.warning {
+  color: #e74c3c;
+  animation: blink 0.6s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}
+
+/* Индикатор "Ходите!" над игроком */
+.turn-indicator {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--gold);
+  font-size: 1.4rem;
+  animation: pulse 0.8s ease-in-out infinite;
+  text-shadow: 0 0 16px rgba(201,168,76,0.8);
+}
+
+/* ─── Адаптация для мобильных ────────────────────────────── */
+@media (max-width: 600px) {
+  .player-seat {
+    width: 78px;
+    padding: 0.3rem;
+  }
+  .card {
+    width: 28px;
+    height: 40px;
+  }
+  .card .rank { font-size: 0.55rem; }
+  .card .suit { font-size: 0.5rem; }
+  .card-center { font-size: 0.8rem; }
+  .players-ring {
+    width: min(380px, calc(100vw - 1rem));
+    height: min(280px, 40vh);
+  }
+}

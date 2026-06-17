@@ -59,7 +59,7 @@
 <div id="gameScreen" class="screen hidden">
   <div class="game-layout">
 
-    <!-- HUD -->
+    <!-- HUD (с таймером хода) -->
     <div class="game-hud">
       <div class="hud-item">
         <span class="hud-label">Раздача</span>
@@ -72,6 +72,11 @@
       <div class="hud-item">
         <span class="hud-label">Блайнды</span>
         <span class="hud-value" id="blindsDisplay">5/10</span>
+      </div>
+      <!-- НОВЫЙ БЛОК: ТАЙМЕР ХОДА -->
+      <div class="hud-item" id="actionTimerContainer">
+        <span class="hud-label" id="actionTimerLabel">⏱ Ход</span>
+        <span class="hud-value" id="actionTimerDisplay">20</span>
       </div>
       <button class="btn-menu-small" id="btnLeaveTable">🚪 Выйти</button>
     </div>

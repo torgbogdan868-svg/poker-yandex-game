@@ -22,7 +22,12 @@
   let syncTimer        = null;
   let fbUnsubscribe    = null;
   let lobbyUnsubscribe = null;
-  let actionInProgress = false; // Защита от двойных кликов
+  let actionInProgress = false;
+
+  // ─── Таймер хода ─────────────────────────────────────────────
+  let actionTimerInterval = null;
+  let actionTimeLeft = 20;
+  const ACTION_TIMEOUT = 20; // секунд
 
   let settings = {
     musicVolume: 0.5,
@@ -40,7 +45,7 @@
     stats: { handsWon: 0, handsPlayed: 0, biggestPot: 0 }
   };
 
-  // ─── Звук ────────────────────────────────────────────────────────────────────
+  // ─── Звук ────────────────────────────────────────────────────
   const AudioManager = (() => {
     let ctx = null;
     function init() { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
@@ -67,7 +72,7 @@
     };
   })();
 
-  // ─── Яндекс SDK ─────────────────────────────────────────────────────────────
+  // ─── Яндекс SDK ─────────────────────────────────────────────
   const YandexSDK = (() => {
     let ysdk=null, player=null, leaderboard=null, adShowing=false;
     async function init() {
@@ -127,7 +132,7 @@
     return { init, loadData, saveData, submitScore, getLeaderboardEntries, showAd, getPlayerName, getPlayerId };
   })();
 
-  // ─── Firebase ──────────────────────────────────────────────────────────────
+  // ─── Firebase ──────────────────────────────────────────────
   const FIREBASE_DB_URL = 'https://poker-14ab8-default-rtdb.firebaseio.com/';
   const FirebaseDB = (() => {
     const base = FIREBASE_DB_URL.replace(/\/$/, '');
@@ -183,7 +188,7 @@
     return { get, set, update, subscribe };
   })();
 
-  // ─── TableStore ─────────────────────────────────────────────────────────────
+  // ─── TableStore ─────────────────────────────────────────────
   function isSeatFree(seat) {
     return !seat || seat.playerId === null || seat.playerId === undefined;
   }
@@ -352,7 +357,7 @@
     }
   };
 
-  // ─── ScreenManager ──────────────────────────────────────────────────────────
+  // ─── ScreenManager ──────────────────────────────────────────
   const ScreenManager = (() => {
     function show(id) {
       document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.classList.add('hidden'); });
@@ -364,7 +369,7 @@
     return { show };
   })();
 
-  // ─── UI ──────────────────────────────────────────────────────────────────────
+  // ─── UI ──────────────────────────────────────────────────────
   const UI = {
     notify(msg, duration=2500) {
       const el = document.getElementById('notification');
@@ -386,7 +391,7 @@
     },
   };
 
-  // ─── Рендер лобби ────────────────────────────────────────────────────────────
+  // ─── Рендер лобби ────────────────────────────────────────────
   function renderLobby() {
     const container = document.getElementById('lobbyTablesList');
     if (!container) return;
@@ -451,7 +456,7 @@
     if (lobbyUnsubscribe) { lobbyUnsubscribe(); lobbyUnsubscribe = null; }
   }
 
-  // ─── Вход и выход из игры ──────────────────────────────────────────────────
+  // ─── Вход и выход ──────────────────────────────────────────
   async function joinTable(tableId) {
     AudioManager.click();
     const cfg = TABLES_CONFIG.find(t => t.id === tableId);
@@ -534,7 +539,7 @@
     }
   }
 
-  // ─── Синхронизация ──────────────────────────────────────────────────────────
+  // ─── Синхронизация ──────────────────────────────────────────
   function startSync() {
     stopSync();
     if (!currentTableId) return;
@@ -560,33 +565,66 @@
     await TableStore.saveTable(currentTableId, state);
   }
 
-  // ─── Таймер автоматического хода ──────────────────────────────────────────
-  let autoActionTimer = null;
-
-  function startAutoActionTimer() {
-    stopAutoActionTimer();
-    if (!state || !state.gameStarted || state.phase === PHASE.SHOWDOWN) return;
+  // ─── Управление таймером хода ──────────────────────────────
+  function startActionTimer() {
+    stopActionTimer();
+    if (!state || !state.gameStarted) return;
     const seat = state.seats[state.currentSeat];
     if (!seat || seat.playerId !== myPlayerId) return;
     if (seat.folded || seat.isAllIn) return;
-    autoActionTimer = setTimeout(() => {
-      const toCall = Math.max(0, state.callAmount - seat.currentBet);
-      const canCheck = toCall === 0;
-      if (canCheck) {
-        humanAction('check');
-        UI.notify('⏳ Авто-чек', 1500);
-      } else {
+
+    actionTimeLeft = ACTION_TIMEOUT;
+    updateActionTimerDisplay();
+
+    actionTimerInterval = setInterval(() => {
+      actionTimeLeft--;
+      updateActionTimerDisplay();
+      if (actionTimeLeft <= 0) {
+        stopActionTimer();
+        // Авто-фолд
+        UI.notify('⏳ Время вышло! Авто-фолд', 2000);
         humanAction('fold');
-        UI.notify('⏳ Авто-фолд', 1500);
       }
-    }, 10000);
+    }, 1000);
   }
 
-  function stopAutoActionTimer() {
-    if (autoActionTimer) { clearTimeout(autoActionTimer); autoActionTimer = null; }
+  function stopActionTimer() {
+    if (actionTimerInterval) {
+      clearInterval(actionTimerInterval);
+      actionTimerInterval = null;
+    }
+    actionTimeLeft = ACTION_TIMEOUT;
+    updateActionTimerDisplay();
+    // Скрываем метку "Ход" если не наш ход
+    const label = document.getElementById('actionTimerLabel');
+    if (label) {
+      const isOurTurn = state && state.gameStarted && state.currentSeat === mySeatIdx;
+      label.textContent = isOurTurn ? '⏱ Ходите!' : '⏱ Ход';
+    }
   }
 
-  // ─── Игровой стол ─────────────────────────────────────────────────────────────
+  function updateActionTimerDisplay() {
+    const display = document.getElementById('actionTimerDisplay');
+    if (display) {
+      display.textContent = Math.max(0, actionTimeLeft);
+      // Мигание, если осталось мало
+      if (actionTimeLeft <= 5) {
+        display.style.color = '#e74c3c';
+        display.style.animation = 'pulse 0.5s ease-in-out infinite';
+      } else {
+        display.style.color = '';
+        display.style.animation = '';
+      }
+    }
+    const label = document.getElementById('actionTimerLabel');
+    if (label && state && state.gameStarted && state.currentSeat === mySeatIdx) {
+      label.textContent = '⏱ Ходите!';
+    } else if (label) {
+      label.textContent = '⏱ Ход';
+    }
+  }
+
+  // ─── Игровой стол ─────────────────────────────────────────────
   function renderGameTable() {
     if (!state) return;
     renderCommunityCards();
@@ -595,7 +633,12 @@
     renderControls();
     renderInfo();
     syncNextHandCountdown();
-    startAutoActionTimer();
+    // Запускаем таймер, если ход наш
+    if (state.gameStarted && state.currentSeat === mySeatIdx) {
+      startActionTimer();
+    } else {
+      stopActionTimer();
+    }
   }
 
   function syncNextHandCountdown() {
@@ -723,7 +766,7 @@
     if (el) el.textContent = state.gameStarted ? `Раздача #${state.handNumber}` : 'Лобби';
   }
 
-  // ─── Действия игрока ──────────────────────────────────────────────────────────
+  // ─── Действия игрока ──────────────────────────────────────────
   async function takeSeat(seatIdx) {
     if (mySeatIdx !== -1) { UI.notify('Вы уже сидите за этим столом'); return; }
     const t = await TableStore.getTable(currentTableId);
@@ -735,7 +778,7 @@
   }
 
   async function leaveTable() {
-    stopAutoActionTimer();
+    stopActionTimer();
     if (!currentTableId || mySeatIdx === -1) {
       stopSync();
       stopNextHandCountdown();
@@ -775,7 +818,7 @@
     startLobbySync();
   }
 
-  // ─── Новая раздача ───────────────────────────────────────────────────────────
+  // ─── Новая раздача ───────────────────────────────────────────
   async function startNewHand() {
     if (!state) return;
     const activePlayers = state.seats.filter(s => !isSeatFree(s) && s.chips > 0);
@@ -792,7 +835,7 @@
     state.lastRaiser = -1;
     state.roundActed = [];
     state.bbSeatIdx = -1;
-    state.handEndsAt = null; // сброс таймера
+    state.handEndsAt = null;
 
     state.seats.forEach(s => {
       s.holeCards = [];
@@ -818,7 +861,7 @@
 
     if (state.currentSeat === mySeatIdx) {
       UI.notify('Ваш ход!', 1500);
-      startAutoActionTimer();
+      startActionTimer();
     }
   }
 
@@ -880,22 +923,21 @@
     return -1;
   }
 
-  // ─── Действия игрока (с защитой от двойных кликов) ─────────────────────────
+  // ─── Действия игрока (с защитой) ──────────────────────────
   function humanAction(action, amount) {
-    if (actionInProgress) return; // защита от двойного нажатия
+    if (actionInProgress) return;
     if (!state || !state.gameStarted) return;
     if (state.currentSeat !== mySeatIdx) return;
     const seat = state.seats[mySeatIdx];
     if (!seat || seat.folded || seat.isAllIn) return;
     AudioManager.resume();
     actionInProgress = true;
-    // разблокируем через 300 мс
     setTimeout(() => { actionInProgress = false; }, 300);
     processSeatAction(mySeatIdx, action, amount);
   }
 
   async function processSeatAction(seatIdx, action, amount) {
-    stopAutoActionTimer();
+    stopActionTimer();
     const s = state.seats[seatIdx];
     if (!s || s.folded || s.isAllIn) { advanceAction(); return; }
 
@@ -943,7 +985,7 @@
   }
 
   async function advanceAction() {
-    stopAutoActionTimer();
+    stopActionTimer();
     const activePlayers = state.seats.filter(s => s.playerId && !s.folded && !s.isAllIn);
     const notFolded     = state.seats.filter(s => s.playerId && !s.folded);
 
@@ -967,7 +1009,7 @@
     state.currentSeat = next;
     if (state.currentSeat === mySeatIdx) {
       UI.notify('Ваш ход!', 1500);
-      startAutoActionTimer();
+      startActionTimer();
     }
     await saveTableState();
     renderGameTable();
@@ -992,7 +1034,7 @@
   }
 
   async function nextPhase() {
-    stopAutoActionTimer();
+    stopActionTimer();
     state.seats.forEach(s => s.currentBet = 0);
     state.callAmount  = 0;
     state.lastRaiser  = -1;
@@ -1017,7 +1059,7 @@
 
     if (state.currentSeat === mySeatIdx) {
       UI.notify('Ваш ход!', 1500);
-      startAutoActionTimer();
+      startActionTimer();
     }
     await saveTableState();
     renderGameTable();
@@ -1035,7 +1077,7 @@
   }
 
   async function showdown() {
-    stopAutoActionTimer();
+    stopActionTimer();
     state.phase = PHASE.SHOWDOWN;
     const contenders = state.seats
       .map((s, i) => ({...s, seatIdx: i}))
@@ -1109,7 +1151,7 @@
   }
 
   async function endHand(winners) {
-    stopAutoActionTimer();
+    stopActionTimer();
     stopNextHandCountdown();
     state.gameStarted = false;
     state.currentSeat = -1;
@@ -1117,22 +1159,17 @@
     state.winningCards = [];
     state.handEndsAt = null;
 
-    // Сбрасываем состояние всех игроков (кроме победителей)
     state.seats.forEach((s, i) => {
       s.currentBet = 0;
       s.totalBet = 0;
       s.folded = isSeatFree(s) || s.chips === 0;
       s.isAllIn = false;
       s.hand = null;
-      // Если игрок не победитель, убираем его карты
       if (!winners.includes(i)) {
         s.holeCards = [];
-      } else {
-        // победитель сохраняет карты для отображения
       }
     });
 
-    // Проверка на нулевые фишки
     state.seats.forEach((s, i) => {
       if (s.playerId && s.chips <= 0) {
         if (s.playerId === myPlayerId) {
@@ -1154,7 +1191,6 @@
     await saveTableState();
     renderGameTable();
 
-    // Автоматический запуск новой раздачи через 15 секунд
     setTimeout(() => {
       if (state && !state.gameStarted) {
         startNewHand();
@@ -1162,7 +1198,7 @@
     }, 15000);
   }
 
-  // ─── Таймер обратного отсчёта ──────────────────────────────────────────────
+  // ─── Таймер обратного отсчёта ──────────────────────────────
   let nextHandTimerInterval = null;
 
   function startNextHandCountdown() {
@@ -1187,7 +1223,7 @@
     if (el) el.classList.add('hidden');
   }
 
-  // ─── Прогресс ────────────────────────────────────────────────────────────────
+  // ─── Прогресс ────────────────────────────────────────────────
   async function saveProgress() {
     const data = { playerData, settings, myName };
     try { localStorage.setItem('pokerSave', JSON.stringify(data)); } catch(e) {}
@@ -1209,7 +1245,7 @@
     if (data.myName)     myName = data.myName;
   }
 
-  // ─── Меню и навигация ──────────────────────────────────────────────────────
+  // ─── Меню и навигация ──────────────────────────────────────
   function renderMainMenu() {
     const el = document.getElementById('playerChipsMenu');
     if (el) el.textContent = `${playerData.chips} 🪙`;
@@ -1244,7 +1280,7 @@
     ).join('');
   }
 
-  // ─── Инициализация ───────────────────────────────────────────────────────────
+  // ─── Инициализация ───────────────────────────────────────────
   async function bootstrap() {
     AudioManager.init();
     await YandexSDK.init();

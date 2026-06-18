@@ -332,14 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     grid.innerHTML = html;
   }
-  // Профиль — обновление при открытии
-  document.getElementById('btnProfile')?.addEventListener('click', () => {
-    const pd = window.PokerGame?.getPlayerData?.() || {};
-    const pName  = document.getElementById('profileName');
-    const pChips = document.getElementById('profileChips');
-    if (pName)  pName.textContent  = document.getElementById('playerNameMenu')?.textContent || 'Игрок';
-    if (pChips) pChips.textContent = (pd.chips || 1000) + ' 🪙';
-  });
+  // Профиль — обновление при открытии (делегировано в game.js, ничего не дублируем)
 
   // ДЕЛЕГИРОВАНИЕ КЛИКОВ ПО СВОБОДНЫМ МЕСТАМ (надёжное решение)
   document.addEventListener('click', function(e) {

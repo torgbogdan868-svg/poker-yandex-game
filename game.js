@@ -126,6 +126,47 @@
     return { init, loadData, saveData, submitScore, getLeaderboardEntries, showAd, getPlayerName, getPlayerId };
   })();
 
+  // ─── Локальный лидерборд (фоллбэк для dev-режима) ──────────
+  const LocalLeaderboard = {
+    KEY: 'poker_local_leaderboard_v1',
+
+    load() {
+      try { return JSON.parse(localStorage.getItem(this.KEY) || '{}'); }
+      catch(e) { return {}; }
+    },
+
+    save(data) {
+      try { localStorage.setItem(this.KEY, JSON.stringify(data)); }
+      catch(e) {}
+    },
+
+    submit(playerId, name, score, wonThisHand) {
+      if (!playerId) return;
+      const data = this.load();
+      const cur = data[playerId] || { name: name || 'Игрок', score: 0, wins: 0, hands: 0, lastSeen: 0 };
+      data[playerId] = {
+        name:       name || cur.name,
+        score:      Math.max(Number(cur.score) || 0, Number(score) || 0),
+        wins:       (Number(cur.wins)  || 0) + (wonThisHand ? 1 : 0),
+        hands:      (Number(cur.hands) || 0) + 1,
+        lastSeen:   Date.now()
+      };
+      this.save(data);
+    },
+
+    getTop(n = 10) {
+      const data = this.load();
+      return Object.entries(data)
+        .map(([id, p]) => ({ id, ...p }))
+        .sort((a, b) => (b.score - a.score) || (b.wins - a.wins))
+        .slice(0, n);
+    },
+
+    clear() {
+      try { localStorage.removeItem(this.KEY); } catch(e) {}
+    }
+  };
+
   // ─── Firebase ──────────────────────────────────────────────
   const FIREBASE_DB_URL = 'https://poker-14ab8-default-rtdb.firebaseio.com/';
   const FirebaseDB = (() => {
@@ -417,7 +458,7 @@
     });
     container.innerHTML = html;
     const chipsEl = document.getElementById('playerChipsMenu');
-    if (chipsEl) chipsEl.textContent = `${playerData.chips} 🪙`;
+    if (chipsEl) chipsEl.textContent = `${getTotalChips()} 🪙`;
     const nameEl = document.getElementById('playerNameMenu');
     if (nameEl) nameEl.textContent = myName;
   }
@@ -575,6 +616,10 @@
     renderControls();
     renderInfo();
     syncNextHandCountdown();
+    // Шапка главного меню (если она видна) тоже должна показывать актуальные фишки
+    // на случай, если мы сидим за столом и открыли «Назад» в лобби.
+    const chipsEl = document.getElementById('playerChipsMenu');
+    if (chipsEl) chipsEl.textContent = `${getTotalChips()} 🪙`;
   }
 
   function syncNextHandCountdown() {
@@ -1064,19 +1109,43 @@
     const share = Math.floor(state.pot / validWinners.length);
     const remainder = state.pot - share * validWinners.length;
 
+    let iWonThisHand = false;
+    let myWinAmount = 0;
+
     validWinners.forEach((i, idx) => {
-      state.seats[i].chips += share + (idx === 0 ? remainder : 0);
+      const winAmount = share + (idx === 0 ? remainder : 0);
+      state.seats[i].chips += winAmount;
       if (state.seats[i].playerId === myPlayerId) {
+        iWonThisHand = true;
+        myWinAmount = winAmount;
         playerData.stats.handsWon++;
+        playerData.totalWins = (playerData.totalWins || 0) + 1;
+        if (winAmount > (playerData.maxWin || 0)) playerData.maxWin = winAmount;
         if (state.pot > playerData.stats.biggestPot) playerData.stats.biggestPot = state.pot;
       }
     });
 
     playerData.stats.handsPlayed++;
-    // ★★★ ИСПРАВЛЕНИЕ: НЕ обновляем playerData.chips здесь, чтобы избежать двойного учёта при выходе ★★★
-    // if (mySeatIdx !== -1 && state.seats[mySeatIdx]) {
-    //   playerData.chips = state.seats[mySeatIdx].chips;   // ← ЭТУ СТРОКУ УДАЛИЛИ
-    // }
+    playerData.totalGames = (playerData.totalGames || 0) + 1;
+
+    // Синхронизируем playerData.chips с реальным остатком за столом,
+    // чтобы профиль/лидерборд показывали актуальную сумму (а не устаревшую до посадки).
+    if (mySeatIdx !== -1 && state.seats[mySeatIdx]) {
+      const seatChips = state.seats[mySeatIdx].chips || 0;
+      // playerData.chips = кошелёк (не за столом) + фишки на месте.
+      // Кошелёк = playerData.chips минус то, что мы посадили, но мы не хранили «сколько посадили»,
+      // поэтому безопаснее так: playerData.chips = max(0, playerData.chips) + 0 (не трогаем кошелёк)
+      // + просто пересчитаем общий «доступный» кэш для отображения:
+      playerData._displayChips = (playerData.chips || 0) + seatChips;
+    }
+
+    // Отправляем результат раздачи в оба лидерборда (локальный + Яндекс)
+    const totalChips = (playerData.chips || 0) + (state.seats[mySeatIdx]?.chips || 0);
+    try { LocalLeaderboard.submit(myPlayerId, myName, totalChips, iWonThisHand); } catch(e) {}
+    try { YandexSDK.submitScore(totalChips); } catch(e) {}
+
+    // ★ playerData.chips не трогаем здесь — обновится при выходе из-за-стола,
+    // чтобы не было двойного учёта (buy-in уже списал, leaveTable вернёт остаток).
 
     const HAND_END_DELAY = 15000;
     state.handEndsAt = Date.now() + HAND_END_DELAY;
@@ -1184,38 +1253,118 @@
   }
 
   // ─── Меню и навигация ──────────────────────────────────────
+  function getTotalChips() {
+    const seatChips = (currentTableId && state && mySeatIdx >= 0)
+      ? (state.seats[mySeatIdx]?.chips || 0)
+      : 0;
+    return (playerData.chips || 0) + seatChips;
+  }
+
   function renderMainMenu() {
     const el = document.getElementById('playerChipsMenu');
-    if (el) el.textContent = `${playerData.chips} 🪙`;
+    if (el) el.textContent = `${getTotalChips()} 🪙`;
     const nameEl = document.getElementById('playerNameMenu');
     if (nameEl) nameEl.textContent = myName;
     renderLobby();
   }
 
   function renderStatsScreen() {
+    const totalChips = getTotalChips();
     const map = {
-      statGames:  playerData.totalGames,
-      statWins:   playerData.totalWins,
-      statWinPct: playerData.totalGames ? Math.round(playerData.totalWins / playerData.totalGames * 100) + '%' : '0%',
-      statMaxWin: playerData.maxWin,
-      statHands:  playerData.stats.handsPlayed,
-      statBigPot: playerData.stats.biggestPot,
+      statGames:  playerData.totalGames   || 0,
+      statWins:   playerData.totalWins    || 0,
+      statWinPct: (playerData.totalGames || 0)
+                    ? Math.round((playerData.totalWins || 0) / playerData.totalGames * 100) + '%'
+                    : '0%',
+      statMaxWin: playerData.maxWin       || 0,
+      statHands:  playerData.stats.handsPlayed || 0,
+      statBigPot: playerData.stats.biggestPot  || 0,
     };
     Object.entries(map).forEach(([id, val]) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = val;
+      if (!el) return;
+      // Вспышка, если значение реально поменялось
+      const prev = el.dataset.val;
+      const next = String(val);
+      if (prev !== undefined && prev !== next) {
+        const item = el.closest('.stat-item');
+        if (item) {
+          item.classList.remove('flash');
+          void item.offsetWidth; // перезапуск анимации
+          item.classList.add('flash');
+        }
+      }
+      el.dataset.val = next;
+      el.textContent = next;
     });
+    // Обновляем имя + фишки (включая те, что сейчас на столе)
+    const pName  = document.getElementById('profileName');
+    const pChips = document.getElementById('profileChips');
+    if (pName)  pName.textContent  = myName;
+    if (pChips) pChips.textContent = totalChips + ' 🪙';
   }
 
   async function renderLeaderboard() {
     const el = document.getElementById('leaderboardList');
     if (!el) return;
     el.innerHTML = '<div class="loading">Загрузка...</div>';
-    const entries = await YandexSDK.getLeaderboardEntries();
-    if (entries.length === 0) { el.innerHTML = '<div class="empty">Нет данных</div>'; return; }
-    el.innerHTML = entries.map((e,i) =>
-      `<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-name">${e.player.publicName||'Игрок'}</span><span class="lb-score">${e.score} 🪙</span></div>`
-    ).join('');
+
+    // 1) Пытаемся взять глобальный лидерборд из Яндекс SDK
+    let entries = [];
+    let source = 'yandex';
+    try {
+      const remote = await YandexSDK.getLeaderboardEntries();
+      if (Array.isArray(remote) && remote.length > 0) {
+        entries = remote.map(e => ({
+          name:  e.player?.publicName || e.player?.public_name || 'Игрок',
+          score: e.score || 0,
+          wins:  0
+        }));
+      }
+    } catch(e) { /* SDK недоступен — идём в локальный */ }
+
+    // 2) Фоллбэк — локальный лидерборд
+    if (entries.length === 0) {
+      source = 'local';
+      const local = LocalLeaderboard.getTop(20);
+      // Если совсем пусто — добавим запись текущего игрока, чтобы экран не был совсем грустным
+      if (local.length === 0 && myPlayerId) {
+        const seatChips = state?.seats?.[mySeatIdx]?.chips || 0;
+        entries = [{
+          name:  myName || 'Вы',
+          score: (playerData.chips || 0) + seatChips,
+          wins:  0
+        }];
+      } else {
+        // Гарантируем, что текущий игрок тоже виден в своём рейтинге
+        const seatChips = state?.seats?.[mySeatIdx]?.chips || 0;
+        const myTotal   = (playerData.chips || 0) + seatChips;
+        const meIdx = local.findIndex(p => p.id === myPlayerId);
+        if (meIdx === -1 && myPlayerId) {
+          local.push({ id: myPlayerId, name: myName || 'Вы', score: myTotal, wins: 0, hands: 0, lastSeen: Date.now() });
+          local.sort((a, b) => b.score - a.score);
+        }
+        entries = local.map(p => ({ name: p.name, score: p.score, wins: p.wins || 0 }));
+      }
+    }
+
+    if (entries.length === 0) {
+      el.innerHTML = '<div class="empty">Пока нет данных.<br><span style="font-size:0.75rem">Сыграйте партию — и вы здесь!</span></div>';
+      return;
+    }
+
+    el.innerHTML = entries.map((e, i) => {
+      const rank  = i + 1;
+      const name  = String(e.name || 'Игрок').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+      const score = Number(e.score) || 0;
+      return `<div class="lb-row"><span class="lb-rank">#${rank}</span><span class="lb-name">${name}</span><span class="lb-score">${score} 🪙</span></div>`;
+    }).join('');
+
+    if (source === 'local') {
+      el.insertAdjacentHTML('beforeend',
+        '<div class="lb-note">📱 Локальный рейтинг этого устройства.<br>Глобальный Топ доступен в <strong>Яндекс Играх</strong>.</div>'
+      );
+    }
   }
 
   // ─── Инициализация ───────────────────────────────────────────

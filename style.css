@@ -910,6 +910,114 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-mid); }
 
+/* ─── Модальный оверлей (бай-ин и др.) ─────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+.modal-overlay.hidden { display: none !important; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal-card {
+  background: linear-gradient(180deg, var(--dark-panel) 0%, #131928 100%);
+  border: 1px solid var(--border-mid);
+  border-radius: 18px;
+  padding: 1.5rem 1.4rem 1.3rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(201, 168, 76, 0.08);
+  text-align: center;
+  animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.modal-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+  letter-spacing: 1px;
+}
+.modal-card p {
+  color: #b0b8c4;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+.modal-btns {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+.modal-btns .btn { flex: 1; }
+.buyin-range-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0 0.6rem;
+}
+.buyin-bound {
+  font-size: 0.75rem;
+  color: var(--gold);
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 8px;
+  padding: 0.2rem 0.3rem;
+}
+.buyin-range-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  border-radius: 3px;
+  outline: none;
+}
+.buyin-range-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  border: 2px solid var(--dark);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.6);
+}
+.buyin-range-row input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  border: 2px solid var(--dark);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.6);
+}
+.buyin-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--gold-light);
+  text-shadow: 0 0 12px rgba(201, 168, 76, 0.4);
+  margin: 0.3rem 0 0.2rem;
+  font-family: 'Playfair Display', serif;
+}
+.buyin-value span { color: var(--gold-light); }
+
 /* ═══════════════════════════════════════════════════════════════
    МОБИЛЬНАЯ АДАПТАЦИЯ — МАКСИМАЛЬНО УВЕЛИЧЕНА
 ═══════════════════════════════════════════════════════════════ */
